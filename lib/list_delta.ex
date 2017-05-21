@@ -1,12 +1,7 @@
 defmodule ListDelta do
   defstruct ops: []
 
-  defmodule Operation do
-    def insert(idx, init), do: %{insert: idx, init: init}
-    def remove(idx), do: %{remove: idx}
-    def replace(idx, new_init), do: %{replace: idx, init: new_init}
-    def change(idx, delta), do: %{change: idx, delta: delta}
-  end
+  alias ListDelta.Operation
 
   def insert(idx, init) do
     %ListDelta{ops: [Operation.insert(idx, init)]}
