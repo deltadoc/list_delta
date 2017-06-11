@@ -22,16 +22,8 @@ defmodule ListDeltaTest do
     end
   end
 
-  describe "compose" do
-    test "insert 0 with insert 1" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.insert(1, 5)
-      assert ops(ListDelta.compose(a, b)) ==
-        [Operation.insert(0, 3),
-         Operation.insert(1, 5)]
-    end
-
-    test "insert 0 with insert 0" do
+  describe "compose insert" do
+    test "retains inserts of the same index" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.insert(0, 5)
       assert ops(ListDelta.compose(a, b)) ==
@@ -39,7 +31,15 @@ defmodule ListDeltaTest do
          Operation.insert(0, 5)]
     end
 
-    test "insert 1 with insert 0" do
+    test "retains inserts of different indexes" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.insert(1, 5)
+      assert ops(ListDelta.compose(a, b)) ==
+        [Operation.insert(0, 3),
+         Operation.insert(1, 5)]
+    end
+
+    test "retains inserts order" do
       a = ListDelta.insert(1, 3)
       b = ListDelta.insert(0, 5)
       assert ops(ListDelta.compose(a, b)) ==
