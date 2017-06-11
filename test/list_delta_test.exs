@@ -22,5 +22,31 @@ defmodule ListDeltaTest do
     end
   end
 
+  describe "compose" do
+    test "insert 0 with insert 1" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.insert(1, 5)
+      assert ops(ListDelta.compose(a, b)) ==
+        [Operation.insert(0, 3),
+         Operation.insert(1, 5)]
+    end
+
+    test "insert 0 with insert 0" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.insert(0, 5)
+      assert ops(ListDelta.compose(a, b)) ==
+        [Operation.insert(0, 3),
+         Operation.insert(0, 5)]
+    end
+
+    test "insert 1 with insert 0" do
+      a = ListDelta.insert(1, 3)
+      b = ListDelta.insert(0, 5)
+      assert ops(ListDelta.compose(a, b)) ==
+        [Operation.insert(1, 3),
+         Operation.insert(0, 5)]
+    end
+  end
+
   defp ops(delta), do: ListDelta.operations(delta)
 end

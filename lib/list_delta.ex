@@ -19,5 +19,9 @@ defmodule ListDelta do
     %ListDelta{ops: [Operation.change(idx, item_delta)]}
   end
 
+  def compose(first, second) do
+    %ListDelta{ops: first.ops ++ second.ops}
+  end
+
   def operations(delta), do: delta.ops
 end
