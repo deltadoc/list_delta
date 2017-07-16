@@ -26,6 +26,7 @@ defmodule ListDelta.Mixfile do
     [{:ex_doc, "~> 0.15", only: [:dev], runtime: false},
      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
      {:credo, "~> 0.7", only: [:dev, :test], runtime: false},
-     {:eqc_ex, "~> 1.4", only: [:dev, :test], runtime: false}]
+     {:eqc_ex, "~> 1.4", only: [:dev, :test], runtime: false},
+     {:cortex, "~> 0.1", only: [:dev, :test]}]
   end
 end
