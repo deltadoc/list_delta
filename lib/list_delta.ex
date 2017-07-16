@@ -1,7 +1,7 @@
 defmodule ListDelta do
   defstruct ops: []
 
-  alias ListDelta.Operation
+  alias ListDelta.{Operation, Composition}
 
   def new, do: %ListDelta{}
 
@@ -23,24 +23,7 @@ defmodule ListDelta do
 
   def operations(delta), do: delta.ops
 
-  def compose(first, second) do
-    first.ops
-    |> Enum.map(&(do_compose(&1, second.ops)))
-    |> List.flatten()
-    |> wrap()
-  end
-
-  defp do_compose(%{insert: _} = op_a, [%{insert: _} = op_b]) do
-    [op_a, op_b]
-  end
-
-  defp do_compose(%{insert: idx}, [%{remove: idx}]) do
-    []
-  end
-
-  defp do_compose(%{insert: _} = op_a, [%{remove: _} = op_b]) do
-    [op_a, op_b]
-  end
+  defdelegate compose(first, second), to: Composition
 
   defp append(%ListDelta{ops: ops}, op), do: wrap(ops ++ [op])
   defp wrap(ops), do: %ListDelta{ops: ops}
