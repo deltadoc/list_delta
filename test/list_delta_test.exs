@@ -4,7 +4,7 @@ defmodule ListDeltaTest do
 
   alias ListDelta.Operation
 
-  describe "construct" do
+  describe "constructing" do
     test "insert" do
       assert ops(ListDelta.insert(1, nil)) == [Operation.insert(1, nil)]
     end
@@ -20,31 +20,60 @@ defmodule ListDeltaTest do
     test "change" do
       assert ops(ListDelta.change(1, 3)) == [Operation.change(1, 3)]
     end
+
+    test "multiple operations" do
+      delta =
+        ListDelta.new()
+        |> ListDelta.insert(1, nil)
+        |> ListDelta.remove(2)
+        |> ListDelta.replace(3, 4)
+        |> ListDelta.change(4, false)
+      operations =
+        [Operation.insert(1, nil),
+         Operation.remove(2),
+         Operation.replace(3, 4),
+         Operation.change(4, false)]
+      assert ops(delta) == operations
+    end
   end
 
-  describe "compose insert" do
-    test "retains inserts of the same index" do
+  describe "composing" do
+    test "insert with insert at different index" do
       a = ListDelta.insert(0, 3)
-      b = ListDelta.insert(0, 5)
+      b = ListDelta.insert(1, false)
       assert ops(ListDelta.compose(a, b)) ==
         [Operation.insert(0, 3),
-         Operation.insert(0, 5)]
+         Operation.insert(1, false)]
     end
 
-    test "retains inserts of different indexes" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.insert(1, 5)
+    test "insert with insert at the same index" do
+      a = ListDelta.insert(0, 2)
+      b = ListDelta.insert(0, nil)
       assert ops(ListDelta.compose(a, b)) ==
-        [Operation.insert(0, 3),
-         Operation.insert(1, 5)]
+        [Operation.insert(0, 2),
+         Operation.insert(0, nil)]
     end
 
-    test "retains inserts order" do
+    test "insert before another" do
       a = ListDelta.insert(1, 3)
       b = ListDelta.insert(0, 5)
       assert ops(ListDelta.compose(a, b)) ==
         [Operation.insert(1, 3),
          Operation.insert(0, 5)]
+    end
+
+    test "insert with remove at different index" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.remove(4)
+      assert ops(ListDelta.compose(a, b)) ==
+        [Operation.insert(0, 3),
+         Operation.remove(4)]
+    end
+
+    test "insert with remove at the same index" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.remove(0)
+      assert ops(ListDelta.compose(a, b)) == []
     end
   end
 

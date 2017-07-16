@@ -3,25 +3,45 @@ defmodule ListDelta do
 
   alias ListDelta.Operation
 
-  def insert(idx, init) do
-    %ListDelta{ops: [Operation.insert(idx, init)]}
+  def new, do: %ListDelta{}
+
+  def insert(delta \\ %ListDelta{}, idx, init) do
+    append(delta, Operation.insert(idx, init))
   end
 
-  def remove(idx) do
-    %ListDelta{ops: [Operation.remove(idx)]}
+  def remove(delta \\ %ListDelta{}, idx) do
+    append(delta, Operation.remove(idx))
   end
 
-  def replace(idx, new_init) do
-    %ListDelta{ops: [Operation.replace(idx, new_init)]}
+  def replace(delta \\ %ListDelta{}, idx, new_init) do
+    append(delta, Operation.replace(idx, new_init))
   end
 
-  def change(idx, item_delta) do
-    %ListDelta{ops: [Operation.change(idx, item_delta)]}
-  end
-
-  def compose(first, second) do
-    %ListDelta{ops: first.ops ++ second.ops}
+  def change(delta \\ %ListDelta{}, idx, item_delta) do
+    append(delta, Operation.change(idx, item_delta))
   end
 
   def operations(delta), do: delta.ops
+
+  def compose(first, second) do
+    first.ops
+    |> Enum.map(&(do_compose(&1, second.ops)))
+    |> List.flatten()
+    |> wrap()
+  end
+
+  defp do_compose(%{insert: _} = op_a, [%{insert: _} = op_b]) do
+    [op_a, op_b]
+  end
+
+  defp do_compose(%{insert: idx}, [%{remove: idx}]) do
+    []
+  end
+
+  defp do_compose(%{insert: _} = op_a, [%{remove: _} = op_b]) do
+    [op_a, op_b]
+  end
+
+  defp append(%ListDelta{ops: ops}, op), do: wrap(ops ++ [op])
+  defp wrap(ops), do: %ListDelta{ops: ops}
 end
