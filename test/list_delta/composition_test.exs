@@ -6,10 +6,10 @@ defmodule ListDelta.CompositionTest do
   describe "composing insert" do
     test "with insert at different index" do
       a = ListDelta.insert(0, 3)
-      b = ListDelta.insert(1, false)
+      b = ListDelta.insert(2, false)
       assert ops(ListDelta.compose(a, b)) == [
         Operation.insert(0, 3),
-        Operation.insert(1, false)
+        Operation.insert(2, false)
       ]
     end
 
@@ -23,10 +23,10 @@ defmodule ListDelta.CompositionTest do
     end
 
     test "before another" do
-      a = ListDelta.insert(1, 3)
+      a = ListDelta.insert(2, 3)
       b = ListDelta.insert(0, 5)
       assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(1, 3),
+        Operation.insert(2, 3),
         Operation.insert(0, 5)
       ]
     end
@@ -101,10 +101,10 @@ defmodule ListDelta.CompositionTest do
 
     test "with replace at different index" do
       a = ListDelta.insert(0, 3)
-      b = ListDelta.replace(1, "text")
+      b = ListDelta.replace(2, "text")
       assert ops(ListDelta.compose(a, b)) == [
         Operation.insert(0, 3),
-        Operation.replace(1, "text")
+        Operation.replace(2, "text")
       ]
     end
 
@@ -128,10 +128,10 @@ defmodule ListDelta.CompositionTest do
 
     test "with change at different index" do
       a = ListDelta.insert(0, 3)
-      b = ListDelta.change(1, "text")
+      b = ListDelta.change(2, "text")
       assert ops(ListDelta.compose(a, b)) == [
         Operation.insert(0, 3),
-        Operation.change(1, "text")
+        Operation.change(2, "text")
       ]
     end
   end
@@ -322,7 +322,7 @@ defmodule ListDelta.CompositionTest do
     test "with replace at different indexes" do
       b = ListDelta.replace(1, 5)
       assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, 123),
+        Operation.change(0, "abc"),
         Operation.replace(1, 5)
       ]
     end
