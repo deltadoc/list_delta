@@ -33,6 +33,20 @@ defmodule ListDelta.Composition do
     {Operation.insert(idx, ItemDelta.compose(init, delta)), orig_idx}
   end
 
+  defp do_compose({%{remove: idx}, orig_idx},
+                  {%{insert: _, init: init}, _}) do
+    {Operation.replace(idx, init), orig_idx}
+  end
+
+  defp do_compose({%{remove: _}, _} = orig_rem,
+                  {%{change: _}, _}) do
+    orig_rem
+  end
+
+  defp do_compose({%{remove: _}, orig_idx}, {op_b, _}) do
+    {op_b, orig_idx}
+  end
+
   defp do_compose(_, {%{remove: _}, _}) do
     :noop
   end
