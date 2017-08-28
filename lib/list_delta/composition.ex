@@ -2,13 +2,17 @@ defmodule ListDelta.Composition do
   alias ListDelta.{OperationsIndexer, Operation}
 
   def compose(first, second) do
-    fst_idxd = OperationsIndexer.index_operations(first)
-    snd_idxd = OperationsIndexer.index_operations(second, length(first))
-    for idx <- 0..Enum.max([length(fst_idxd), length(snd_idxd)]) do
-      do_compose(Enum.at(fst_idxd, idx, :noop), Enum.at(snd_idxd, idx, :noop))
-    end
+    {OperationsIndexer.index_operations(first),
+     OperationsIndexer.index_operations(second, length(first))}
+    |> compose_idxd_ops()
     |> OperationsIndexer.unindex_operations()
     |> List.flatten()
+  end
+
+  defp compose_idxd_ops({first, second}) do
+    for idx <- 0..Enum.max([length(first), length(second)]) do
+      do_compose(Enum.at(first, idx, :noop), Enum.at(second, idx, :noop))
+    end
   end
 
   defp do_compose(op_a, :noop), do: op_a
