@@ -1,7 +1,7 @@
-defmodule ListDelta.OpsIndexer do
+defmodule ListDelta.OperationsIndexer do
   alias ListDelta.Operation
 
-  def index_ops(ops) do
+  def index_operations(ops) do
     ops
     |> Enum.with_index()
     |> List.foldl([], &index_op/2)
