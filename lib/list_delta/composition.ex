@@ -3,7 +3,7 @@ defmodule ListDelta.Composition do
 
   def compose(first, second) do
     fst_idxd = OperationsIndexer.index_operations(first)
-    snd_idxd = OperationsIndexer.index_operations(second)
+    snd_idxd = OperationsIndexer.index_operations(second, length(first))
     for idx <- 0..Enum.max([length(fst_idxd), length(snd_idxd)]) do
       do_compose(Enum.at(fst_idxd, idx, :noop), Enum.at(snd_idxd, idx, :noop))
     end

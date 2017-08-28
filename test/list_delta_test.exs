@@ -61,8 +61,8 @@ defmodule ListDeltaTest do
       a = ListDelta.insert(1, 3)
       b = ListDelta.insert(0, 5)
       assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 5),
-        Operation.insert(1, 3)
+        Operation.insert(1, 3),
+        Operation.insert(0, 5)
       ]
     end
 
