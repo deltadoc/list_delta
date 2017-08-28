@@ -86,7 +86,7 @@ defmodule ListDelta.OperationsIndexerTest do
     test "of multiple operations" do
       indexed_ops = [
         {op1 = Operation.insert(0, 1), 0},
-        {op2 = Operation.insert(1, 3), 1},
+        {op2 = Operation.insert(2, 3), 1},
       ]
       assert unindex_operations(indexed_ops) == [op1, op2]
     end
