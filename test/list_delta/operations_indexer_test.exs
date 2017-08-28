@@ -65,6 +65,14 @@ defmodule ListDelta.OperationsIndexerTest do
       ]
       assert index_operations(ops) == [{op2, 1}, :noop, :noop, {op1, 0}]
     end
+
+    test "of two inserts with offset" do
+      ops = [
+        op1 = Operation.insert(0, 3),
+        op2 = Operation.insert(1, 5)
+      ]
+      assert index_operations(ops, 6) == [{op1, 6}, {op2, 7}]
+    end
   end
 
   describe "unindexing" do
