@@ -8,4 +8,9 @@ defmodule ListDelta.Operation do
   def type(%{remove: _}), do: :remove
   def type(%{replace: _}), do: :replace
   def type(%{change: _}), do: :change
+
+  def index(%{insert: idx}), do: idx
+  def index(%{remove: idx}), do: idx
+  def index(%{replace: idx}), do: idx
+  def index(%{change: idx}), do: idx
 end
