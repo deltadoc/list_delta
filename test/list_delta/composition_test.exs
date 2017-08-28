@@ -3,7 +3,7 @@ defmodule ListDelta.CompositionTest do
   doctest ListDelta.Composition
   alias ListDelta.Operation
 
-  describe "composing" do
+  describe "composing insert" do
     test "insert with insert at different index" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.insert(1, false)
@@ -105,6 +105,33 @@ defmodule ListDelta.CompositionTest do
       assert ops(ListDelta.compose(a, b)) == [
         Operation.insert(0, 3),
         Operation.replace(1, "text")
+      ]
+    end
+
+    test "insert immediately followed by change" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.change(0, 6)
+      assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, 6)]
+    end
+
+    test "double insert with change" do
+      a =
+        ListDelta.new()
+        |> ListDelta.insert(0, 3)
+        |> ListDelta.insert(0, nil)
+      b = ListDelta.change(0, "text")
+      assert ops(ListDelta.compose(a, b)) == [
+        Operation.insert(0, 3),
+        Operation.insert(0, "text")
+      ]
+    end
+
+    test "insert with change at different index" do
+      a = ListDelta.insert(0, 3)
+      b = ListDelta.change(1, "text")
+      assert ops(ListDelta.compose(a, b)) == [
+        Operation.insert(0, 3),
+        Operation.change(1, "text")
       ]
     end
   end

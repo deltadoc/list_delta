@@ -1,5 +1,5 @@
 defmodule ListDelta.Composition do
-  alias ListDelta.{OperationsIndexer, Operation}
+  alias ListDelta.{OperationsIndexer, Operation, ItemDelta}
 
   def compose(first, second) do
     {OperationsIndexer.index_operations(first),
@@ -18,12 +18,19 @@ defmodule ListDelta.Composition do
   defp do_compose(op_a, :noop), do: op_a
   defp do_compose(:noop, op_b), do: op_b
 
-  defp do_compose({%{insert: _} = op_a, orig_idx}, {%{insert: _} = op_b, _}) do
+  defp do_compose({%{insert: _} = op_a, orig_idx},
+                  {%{insert: _} = op_b, _}) do
     {[op_a, op_b], orig_idx}
   end
 
-  defp do_compose({%{insert: idx}, orig_idx}, {%{replace: _, init: init}, _}) do
+  defp do_compose({%{insert: idx}, orig_idx},
+                  {%{replace: _, init: init}, _}) do
     {Operation.insert(idx, init), orig_idx}
+  end
+
+  defp do_compose({%{insert: idx, init: init}, orig_idx},
+                  {%{change: _, delta: delta}, _}) do
+    {Operation.insert(idx, ItemDelta.compose(init, delta)), orig_idx}
   end
 
   defp do_compose(_, {%{remove: _}, _}) do
