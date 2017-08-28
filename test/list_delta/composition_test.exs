@@ -4,7 +4,7 @@ defmodule ListDelta.CompositionTest do
   alias ListDelta.Operation
 
   describe "composing insert" do
-    test "insert with insert at different index" do
+    test "with insert at different index" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.insert(1, false)
       assert ops(ListDelta.compose(a, b)) == [
@@ -13,7 +13,7 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert with insert at the same index" do
+    test "with insert at the same index" do
       a = ListDelta.insert(0, 2)
       b = ListDelta.insert(0, nil)
       assert ops(ListDelta.compose(a, b)) == [
@@ -22,7 +22,7 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert before another" do
+    test "before another" do
       a = ListDelta.insert(1, 3)
       b = ListDelta.insert(0, 5)
       assert ops(ListDelta.compose(a, b)) == [
@@ -31,7 +31,7 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert with remove at different index" do
+    test "with remove at different index" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.remove(4)
       assert ops(ListDelta.compose(a, b)) == [
@@ -40,13 +40,13 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert immediately followed by remove" do
+    test "immediately followed by remove" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.remove(0)
       assert ops(ListDelta.compose(a, b)) == []
     end
 
-    test "double insert with remove" do
+    test "two times followed by remove" do
       a =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
@@ -55,7 +55,7 @@ defmodule ListDelta.CompositionTest do
       assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, 3)]
     end
 
-    test "triple insert with remove" do
+    test "three times followed by remove" do
       a =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
@@ -68,7 +68,7 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "triple insert with remove at different index" do
+    test "three times followed by remove of follow-up index" do
       a =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
@@ -81,13 +81,13 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert immediately followed by replace" do
+    test "immediately followed by replace" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.replace(0, "text")
       assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, "text")]
     end
 
-    test "double insert with replace" do
+    test "two times with with replace" do
       a =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
@@ -99,7 +99,7 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert with replace at different index" do
+    test "with replace at different index" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.replace(1, "text")
       assert ops(ListDelta.compose(a, b)) == [
@@ -108,13 +108,13 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert immediately followed by change" do
+    test "immediately followed by change" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.change(0, 6)
       assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, 6)]
     end
 
-    test "double insert with change" do
+    test "two times with change" do
       a =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
@@ -126,7 +126,7 @@ defmodule ListDelta.CompositionTest do
       ]
     end
 
-    test "insert with change at different index" do
+    test "with change at different index" do
       a = ListDelta.insert(0, 3)
       b = ListDelta.change(1, "text")
       assert ops(ListDelta.compose(a, b)) == [
@@ -322,7 +322,7 @@ defmodule ListDelta.CompositionTest do
     test "with replace at different indexes" do
       b = ListDelta.replace(1, 5)
       assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, "abc"),
+        Operation.change(0, 123),
         Operation.replace(1, 5)
       ]
     end
