@@ -102,6 +102,19 @@ defmodule ListDeltaTest do
         Operation.insert(0, nil)
       ]
     end
+
+    test "triple insert with remove at different index" do
+      a =
+        ListDelta.new()
+        |> ListDelta.insert(0, 3)
+        |> ListDelta.insert(0, nil)
+        |> ListDelta.insert(0, false)
+      b = ListDelta.remove(1)
+      assert ops(ListDelta.compose(a, b)) == [
+        Operation.insert(0, 3),
+        Operation.insert(0, false)
+      ]
+    end
   end
 
   defp ops(delta), do: ListDelta.operations(delta)

@@ -18,7 +18,7 @@ defmodule ListDelta.Composition do
     {[op_a, op_b], orig_idx}
   end
 
-  defp do_compose({%{insert: idx}, _}, {%{remove: idx}, _}) do
+  defp do_compose({%{insert: _}, _}, {%{remove: _}, _}) do
     :noop
   end
 end
