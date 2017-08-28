@@ -7,6 +7,13 @@ defmodule ListDelta.OperationsIndexer do
     |> List.foldl([], &index_op/2)
   end
 
+  def unindex_operations(idxd_ops) do
+    idxd_ops
+    |> Enum.filter(&(&1 != :noop))
+    |> Enum.sort_by(&(elem(&1, 1)))
+    |> Enum.map(&(elem(&1, 0)))
+  end
+
   defp index_op({%{insert: idx}, _} = op_with_orig_idx, idxd_ops) do
     insert_at_idx(idxd_ops, idx, op_with_orig_idx)
   end

@@ -66,4 +66,42 @@ defmodule ListDelta.OperationsIndexerTest do
       assert index_operations(ops) == [{op2, 1}, :noop, :noop, {op1, 0}]
     end
   end
+
+  describe "unindexing" do
+    test "of single operation" do
+      indexed_ops = [
+        {op = Operation.insert(0, 1), 0}
+      ]
+      assert unindex_operations(indexed_ops) == [op]
+    end
+
+    test "of multiple operations" do
+      indexed_ops = [
+        {op1 = Operation.insert(0, 1), 0},
+        {op2 = Operation.insert(1, 3), 1},
+      ]
+      assert unindex_operations(indexed_ops) == [op1, op2]
+    end
+
+    test "of multiple same operations in reverse order" do
+      indexed_ops = [
+        {op2 = Operation.insert(0, 6), 1},
+        :noop,
+        :noop,
+        :noop,
+        {op1 = Operation.insert(3, 3), 0}
+      ]
+      assert unindex_operations(indexed_ops) == [op1, op2]
+    end
+
+    test "of multiple different operations in reverse order" do
+      indexed_ops = [
+        {op2 = Operation.remove(0), 1},
+        :noop,
+        :noop,
+        {op1 = Operation.insert(3, 3), 0}
+      ]
+      assert unindex_operations(indexed_ops) == [op1, op2]
+    end
+  end
 end
