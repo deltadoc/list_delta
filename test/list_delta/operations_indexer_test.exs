@@ -3,7 +3,7 @@ defmodule ListDelta.OperationsIndexerTest do
   alias ListDelta.Operation
   import ListDelta.OperationsIndexer
 
-  test "indexes single operation" do
+  test "indexes single operation at zero point" do
     assert index_operations([op = Operation.insert(0, 3)]) == [{op, 0}]
     assert index_operations([op = Operation.remove(0)]) == [{op, 0}]
     assert index_operations([op = Operation.replace(0, 3)]) == [{op, 0}]
@@ -49,5 +49,10 @@ defmodule ListDelta.OperationsIndexerTest do
       op2 = Operation.insert(0, 6)
     ]
     assert index_operations(ops) == [{op2, 1}, :noop, :noop, :noop, {op1, 0}]
+  end
+
+  test "indexes single remove at non-zero point" do
+    op = Operation.remove(4)
+    assert index_operations([op]) == [:noop, :noop, :noop, :noop, {op, 0}]
   end
 end

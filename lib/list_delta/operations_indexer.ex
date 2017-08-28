@@ -7,18 +7,15 @@ defmodule ListDelta.OperationsIndexer do
     |> List.foldl([], &index_op/2)
   end
 
-  defp index_op({op, _} = op_with_orig_idx, idxd_ops) do
-    type = Operation.type(op)
-    idx = Operation.index(op)
-    index_op(type, idx, op_with_orig_idx, idxd_ops)
-  end
-
-  defp index_op(:insert, idx, op_with_orig_idx, idxd_ops) do
+  defp index_op({%{insert: idx}, _} = op_with_orig_idx, idxd_ops) do
     insert_at_idx(idxd_ops, idx, op_with_orig_idx)
   end
 
-  defp index_op(_op_type, _idx, op_with_orig_idx, idxd_ops) do
-    idxd_ops ++ [op_with_orig_idx]
+  defp index_op({op, _} = op_with_orig_idx, idxd_ops) do
+    idx = Operation.index(op)
+    idxd_ops
+    |> ensure_length(idx + 1)
+    |> List.update_at(idx, fn _ -> op_with_orig_idx end)
   end
 
   defp insert_at_idx(list, idx, val) do
