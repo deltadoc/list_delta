@@ -15,7 +15,7 @@ defmodule ListDelta.OperationsIndexer do
     idx = Operation.index(op)
     idxd_ops
     |> ensure_length(idx + 1)
-    |> List.update_at(idx, fn _ -> op_with_orig_idx end)
+    |> List.replace_at(idx, op_with_orig_idx)
   end
 
   defp insert_at_idx(list, idx, val) do

@@ -51,8 +51,17 @@ defmodule ListDelta.OperationsIndexerTest do
     assert index_operations(ops) == [{op2, 1}, :noop, :noop, :noop, {op1, 0}]
   end
 
-  test "indexes single remove at non-zero point" do
-    op = Operation.remove(4)
-    assert index_operations([op]) == [:noop, :noop, :noop, :noop, {op, 0}]
+  test "indexes single operation at non-zero point" do
+    assert index_operations([op = Operation.remove(1)]) == [:noop, {op, 0}]
+    assert index_operations([op = Operation.replace(1, 3)]) == [:noop, {op, 0}]
+    assert index_operations([op = Operation.change(1, 5)]) == [:noop, {op, 0}]
+  end
+
+  test "indexes insert and remove of different indexes in reverse order" do
+    ops = [
+      op1 = Operation.insert(3, 3),
+      op2 = Operation.remove(0)
+    ]
+    assert index_operations(ops) == [{op2, 1}, :noop, :noop, {op1, 0}]
   end
 end
