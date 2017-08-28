@@ -47,11 +47,6 @@ defmodule ListDelta.Composition do
     {op_b, orig_idx}
   end
 
-  defp do_compose({%{replace: idx}, orig_idx},
-                  {%{insert: _, init: init}, _}) do
-    {Operation.replace(idx, init), orig_idx}
-  end
-
   defp do_compose({%{replace: idx, init: init}, orig_idx},
                   {%{change: _, delta: delta}, _}) do
     {Operation.replace(idx, ItemDelta.compose(init, delta)), orig_idx}
@@ -60,6 +55,20 @@ defmodule ListDelta.Composition do
   defp do_compose({%{replace: _}, orig_idx},
                   {%{remove: _} = rem, _}) do
     {rem, orig_idx}
+  end
+
+  defp do_compose({%{change: idx, delta: delta_a}, orig_idx},
+                  {%{change: _, delta: delta_b}, _}) do
+    {Operation.change(idx, ItemDelta.compose(delta_a, delta_b)), orig_idx}
+  end
+
+  defp do_compose({%{change: _}, orig_idx},
+                  {%{remove: _} = rem, _}) do
+    {rem, orig_idx}
+  end
+
+  defp do_compose({_, orig_idx}, {%{insert: idx, init: init}, _}) do
+    {Operation.replace(idx, init), orig_idx}
   end
 
   defp do_compose({_, orig_idx}, {%{replace: _} = rep, _}) do
