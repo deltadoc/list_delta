@@ -34,4 +34,20 @@ defmodule ListDelta.OperationsIndexerTest do
     ]
     assert index_operations(ops) == [{op3, 2}, {op2, 1}, {op1, 0}]
   end
+
+  test "indexes two inserts at two insert points separated by noop" do
+    ops = [
+      op1 = Operation.insert(0, 3),
+      op2 = Operation.insert(3, 6)
+    ]
+    assert index_operations(ops) == [{op1, 0}, :noop, :noop, {op2, 1}]
+  end
+
+  test "indexes two inserts separated by noop, provided in reverse order" do
+    ops = [
+      op1 = Operation.insert(3, 3),
+      op2 = Operation.insert(0, 6)
+    ]
+    assert index_operations(ops) == [{op2, 1}, :noop, :noop, :noop, {op1, 0}]
+  end
 end

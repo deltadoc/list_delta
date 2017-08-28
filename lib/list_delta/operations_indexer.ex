@@ -23,6 +23,12 @@ defmodule ListDelta.OperationsIndexer do
 
   defp insert_at_idx(list, idx, val) do
     list
+    |> ensure_length(idx)
     |> List.insert_at(idx, val)
+  end
+
+  defp ensure_length(list, idx) when length(list) >= idx, do: list
+  defp ensure_length(list, idx) do
+    ensure_length(list ++ [:noop], idx)
   end
 end
