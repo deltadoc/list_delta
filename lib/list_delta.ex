@@ -6,19 +6,19 @@ defmodule ListDelta do
   def new, do: %ListDelta{}
 
   def insert(delta \\ %ListDelta{}, idx, init) do
-    append(delta, Operation.insert(idx, init))
+    compose(delta, wrap(Operation.insert(idx, init)))
   end
 
   def remove(delta \\ %ListDelta{}, idx) do
-    append(delta, Operation.remove(idx))
+    compose(delta, wrap(Operation.remove(idx)))
   end
 
   def replace(delta \\ %ListDelta{}, idx, new_init) do
-    append(delta, Operation.replace(idx, new_init))
+    compose(delta, wrap(Operation.replace(idx, new_init)))
   end
 
   def change(delta \\ %ListDelta{}, idx, item_delta) do
-    append(delta, Operation.change(idx, item_delta))
+    compose(delta, wrap(Operation.change(idx, item_delta)))
   end
 
   def operations(delta), do: delta.ops
@@ -29,6 +29,5 @@ defmodule ListDelta do
     |> wrap()
   end
 
-  defp append(%ListDelta{ops: ops}, op), do: wrap(ops ++ [op])
-  defp wrap(ops), do: %ListDelta{ops: ops}
+  defp wrap(ops), do: %ListDelta{ops: List.wrap(ops)}
 end
