@@ -18,6 +18,16 @@ defmodule ListDelta.Index do
     |> reindex_ops()
   end
 
+  def replace_at(ops_index, idx, op) do
+    List.replace_at(ops_index, idx, op)
+  end
+
+  def remove_at(ops_index, idx) do
+    ops_index
+    |> List.delete_at(idx)
+    |> reindex_ops()
+  end
+
   def to_operations(ops_index) do
     ops_index
     |> List.foldl([], &prepend_op(&2, &1))
@@ -56,6 +66,10 @@ defmodule ListDelta.Index do
   defp prepend_op([%{insert: prev_idx} = prev_ins | remainder],
                    %{insert: _, init: init}) do
     [prev_ins | prepend_op(remainder, Operation.insert(prev_idx, init))]
+  end
+
+  defp prepend_op([], %{insert: _, init: init}) do
+    [Operation.insert(0, init)]
   end
 
   defp prepend_op(ops, op), do: [op | ops]

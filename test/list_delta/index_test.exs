@@ -154,5 +154,15 @@ defmodule ListDelta.IndexTest do
         Operation.insert(2, 3)
       ]
     end
+
+    test "of insert not preceded by noop" do
+      ops_index = [Operation.insert(1, "ABC")]
+      assert Index.to_operations(ops_index) == [Operation.insert(0, "ABC")]
+    end
+
+    test "of insert preceded by noop" do
+      ops_index = [:noop, Operation.insert(1, "ABC")]
+      assert Index.to_operations(ops_index) == [Operation.insert(1, "ABC")]
+    end
   end
 end
