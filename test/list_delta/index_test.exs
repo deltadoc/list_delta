@@ -71,6 +71,17 @@ defmodule ListDelta.IndexTest do
       assert Index.new([op = Operation.change(1, 5)]) == [:noop, op]
     end
 
+    test "of remove and insert of different indexes" do
+      ops = [
+        Operation.remove(0),
+        Operation.insert(1, "text")
+      ]
+      assert Index.new(ops) == [
+        Operation.remove(0),
+        Operation.insert(1, "text")
+      ]
+    end
+
     test "of insert and remove of different indexes in reverse order" do
       ops = [
         Operation.insert(3, 3),
@@ -78,7 +89,6 @@ defmodule ListDelta.IndexTest do
       ]
       assert Index.new(ops) == [
         Operation.remove(0),
-        :noop,
         :noop,
         Operation.insert(2, 3)
       ]
@@ -142,7 +152,7 @@ defmodule ListDelta.IndexTest do
       ]
     end
 
-    test "of insert and remove of different indexes in reverse order" do
+    test "of insert and remove of different indexes" do
       ops_index = [
         Operation.remove(0),
         :noop,
