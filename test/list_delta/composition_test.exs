@@ -205,7 +205,10 @@ defmodule ListDelta.CompositionTest do
 
     test "with insert at the same index" do
       b = ListDelta.insert(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [@op, b]
+      assert ops(ListDelta.compose(@op, b)) == [
+        Operation.replace(0, 123),
+        Operation.insert(0, "text")
+      ]
     end
 
     test "with insert at different indexes" do
@@ -268,7 +271,8 @@ defmodule ListDelta.CompositionTest do
     test "with insert at the same index" do
       b = ListDelta.insert(0, "text")
       assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, "text")
+        Operation.change(0, "abc"),
+        Operation.insert(0, "text")
       ]
     end
 
