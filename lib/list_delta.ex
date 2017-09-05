@@ -23,11 +23,7 @@ defmodule ListDelta do
 
   def operations(delta), do: delta.ops
 
-  def compose(first, second) do
-    first.ops
-    |> Composition.compose(second.ops)
-    |> wrap()
-  end
+  defdelegate compose(first, second), to: Composition
 
   defp wrap(ops), do: %ListDelta{ops: List.wrap(ops)}
 end

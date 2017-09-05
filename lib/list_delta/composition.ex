@@ -2,9 +2,15 @@ defmodule ListDelta.Composition do
   alias ListDelta.{Index, Operation, ItemDelta}
 
   def compose(first, second) do
+    index =
+      first
+      |> ListDelta.operations()
+      |> Index.from_operations()
     second
-    |> List.foldl(Index.from_operations(first), &do_compose/2)
+    |> ListDelta.operations()
+    |> List.foldl(index, &do_compose/2)
     |> Index.to_operations()
+    |> wrap_into_delta()
   end
 
   defp do_compose(:noop, ops_index), do: ops_index
@@ -51,4 +57,6 @@ defmodule ListDelta.Composition do
   defp do_compose(_left, right, ops_index) do
     Index.add(ops_index, right)
   end
+
+  defp wrap_into_delta(ops), do: %ListDelta{ops: ops}
 end
