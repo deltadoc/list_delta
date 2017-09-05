@@ -3,7 +3,7 @@ defmodule ListDelta.Composition do
 
   def compose(first, second) do
     second
-    |> List.foldl(Index.new(first), &do_compose/2)
+    |> List.foldl(Index.from_operations(first), &do_compose/2)
     |> Index.to_operations()
   end
 
@@ -15,21 +15,21 @@ defmodule ListDelta.Composition do
 
   defp do_compose(%{insert: _},
                   %{remove: idx}, ops_index) do
-    List.delete_at(ops_index, idx)
+    Index.delete_at(ops_index, idx)
   end
   defp do_compose(%{insert: idx},
                   %{replace: _, init: init}, ops_index) do
-    List.replace_at(ops_index, idx, Operation.insert(idx, init))
+    Index.replace_at(ops_index, idx, Operation.insert(idx, init))
   end
   defp do_compose(%{insert: idx, init: init},
                   %{change: _, delta: delta}, ops_index) do
     new_init = ItemDelta.compose(init, delta)
-    List.replace_at(ops_index, idx, Operation.insert(idx, new_init))
+    Index.replace_at(ops_index, idx, Operation.insert(idx, new_init))
   end
 
   defp do_compose(%{remove: idx},
                   %{insert: _, init: init}, ops_index) do
-    List.replace_at(ops_index, idx, Operation.replace(idx, init))
+    Index.replace_at(ops_index, idx, Operation.replace(idx, init))
   end
   defp do_compose(%{remove: _},
                   %{change: _}, ops_index) do
@@ -39,7 +39,7 @@ defmodule ListDelta.Composition do
   defp do_compose(%{replace: idx, init: init},
                   %{change: _, delta: delta}, ops_index) do
     new_init = ItemDelta.compose(init, delta)
-    List.replace_at(ops_index, idx, Operation.replace(idx, new_init))
+    Index.replace_at(ops_index, idx, Operation.replace(idx, new_init))
   end
 
   defp do_compose(_left, right, ops_index) do

@@ -2,7 +2,8 @@ defmodule ListDelta.Index do
   alias ListDelta.Operation
 
   def new, do: []
-  def new(ops) do
+
+  def from_operations(ops) do
     List.foldl(ops, new(), &add(&2, &1))
   end
 
@@ -21,6 +22,9 @@ defmodule ListDelta.Index do
     ops_index
     |> replace_at_index(Operation.index(op), op)
   end
+
+  def replace_at(ops_index, idx, op), do: List.replace_at(ops_index, idx, op)
+  def delete_at(ops_index, idx), do: List.delete_at(ops_index, idx)
 
   def to_operations(ops_index) do
     ops_index

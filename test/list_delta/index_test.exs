@@ -4,10 +4,10 @@ defmodule ListDelta.IndexTest do
 
   describe "indexing" do
     test "of single operation at zero point" do
-      assert Index.new([op = Operation.insert(0, 3)]) == [op]
-      assert Index.new([op = Operation.remove(0)]) == [op]
-      assert Index.new([op = Operation.replace(0, 3)]) == [op]
-      assert Index.new([op = Operation.change(0, 3)]) == [op]
+      assert Index.from_operations([op = Operation.insert(0, 3)]) == [op]
+      assert Index.from_operations([op = Operation.remove(0)]) == [op]
+      assert Index.from_operations([op = Operation.replace(0, 3)]) == [op]
+      assert Index.from_operations([op = Operation.change(0, 3)]) == [op]
     end
 
     test "of two inserts at different insert points" do
@@ -15,7 +15,7 @@ defmodule ListDelta.IndexTest do
         op1 = Operation.insert(0, 3),
         op2 = Operation.insert(1, 5)
       ]
-      assert Index.new(ops) == [op1, op2]
+      assert Index.from_operations(ops) == [op1, op2]
     end
 
     test "of two inserts at the same insert point" do
@@ -23,7 +23,7 @@ defmodule ListDelta.IndexTest do
         Operation.insert(0, 3),
         Operation.insert(0, 5)
       ]
-      assert Index.new(ops) == [
+      assert Index.from_operations(ops) == [
         Operation.insert(0, 5),
         Operation.insert(1, 3)
       ]
@@ -35,7 +35,7 @@ defmodule ListDelta.IndexTest do
         Operation.insert(0, 5),
         Operation.insert(0, 6)
       ]
-      assert Index.new(ops) == [
+      assert Index.from_operations(ops) == [
         Operation.insert(0, 6),
         Operation.insert(1, 5),
         Operation.insert(2, 3)
@@ -47,7 +47,7 @@ defmodule ListDelta.IndexTest do
         op1 = Operation.insert(0, 3),
         op2 = Operation.insert(3, 6)
       ]
-      assert Index.new(ops) == [op1, :noop, :noop, op2]
+      assert Index.from_operations(ops) == [op1, :noop, :noop, op2]
     end
 
     test "of two inserts separated by noop, provided in reverse order" do
@@ -55,7 +55,7 @@ defmodule ListDelta.IndexTest do
         Operation.insert(3, 3),
         Operation.insert(0, 6)
       ]
-      assert Index.new(ops) == [
+      assert Index.from_operations(ops) == [
         Operation.insert(0, 6),
         :noop,
         :noop,
@@ -65,10 +65,10 @@ defmodule ListDelta.IndexTest do
     end
 
     test "of single operation at non-zero point" do
-      assert Index.new([op = Operation.insert(1, "B")]) == [:noop, op]
-      assert Index.new([op = Operation.remove(1)]) == [:noop, op]
-      assert Index.new([op = Operation.replace(1, 3)]) == [:noop, op]
-      assert Index.new([op = Operation.change(1, 5)]) == [:noop, op]
+      assert Index.from_operations([op = Operation.insert(1, "B")]) == [:noop, op]
+      assert Index.from_operations([op = Operation.remove(1)]) == [:noop, op]
+      assert Index.from_operations([op = Operation.replace(1, 3)]) == [:noop, op]
+      assert Index.from_operations([op = Operation.change(1, 5)]) == [:noop, op]
     end
 
     test "of remove and insert of different indexes" do
@@ -76,7 +76,7 @@ defmodule ListDelta.IndexTest do
         Operation.remove(0),
         Operation.insert(1, "text")
       ]
-      assert Index.new(ops) == [
+      assert Index.from_operations(ops) == [
         Operation.remove(0),
         Operation.insert(1, "text")
       ]
@@ -87,7 +87,7 @@ defmodule ListDelta.IndexTest do
         Operation.insert(3, 3),
         Operation.remove(0)
       ]
-      assert Index.new(ops) == [
+      assert Index.from_operations(ops) == [
         Operation.remove(0),
         :noop,
         Operation.insert(2, 3)
