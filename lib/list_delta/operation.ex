@@ -29,16 +29,16 @@ defmodule ListDelta.Operation do
   is a very different story. If you ever worked with linked lists, you know that
   you can easily insert more than one item at the same index:
 
-    insert 0, a + insert 0, b + insert 0, c
+      insert 0, a + insert 0, b + insert 0, c
 
   will result in a following list:
 
-    [c, b, a]
+      [c, b, a]
 
   Perhaps more interesting is that you can create exactly the same list using
   completely different set of inserts:
 
-    insert 0, c + insert 1, b + insert 2, a
+      insert 0, c + insert 1, b + insert 2, a
 
   From the ListDelta point of view these two sets of operations are considered
   equal. You can learn more about that in `ListDelta.Index`.
