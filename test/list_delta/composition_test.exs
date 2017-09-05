@@ -1,7 +1,24 @@
 defmodule ListDelta.CompositionTest do
   use ExUnit.Case
-  doctest ListDelta.Composition
-  alias ListDelta.Operation
+  use EQC.ExUnit
+
+  alias ListDelta.{Operation, Composition}
+  import ListDelta.Generators
+
+  doctest Composition
+
+  property "(a + b) + c = a + (b + c)" do
+    forall {delta_a, delta_b} <- {delta(), delta()} do
+      list = ListDelta.new()
+      list_a = ListDelta.compose(list, delta_a)
+      list_b = ListDelta.compose(list_a, delta_b)
+
+      delta_c = ListDelta.compose(delta_a, delta_b)
+      list_c = ListDelta.compose(list, delta_c)
+
+      ensure list_b == list_c
+    end
+  end
 
   describe "composing insert" do
     test "with insert at different index" do
