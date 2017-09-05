@@ -76,7 +76,7 @@ defmodule ListDelta.Index do
 
   With Index it does not matter as it always normalises operations back to the
   zero-index notation (first set). This way you can compare the indexes of
-  previous two operations and find that they are exactly the same.
+  previous two sets and find that they are exactly the same.
   """
 
   alias ListDelta.Operation
