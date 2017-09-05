@@ -1,16 +1,16 @@
 defmodule ListDelta.Index do
   alias ListDelta.Operation
 
-  def index_operations(ops) do
-    List.foldl(ops, [], &index_operation/2)
+  def new, do: []
+  def new(ops) do
+    List.foldl(ops, new(), &add(&2, &1))
   end
 
-  defp index_operation(%{insert: idx} = op, result) do
-    insert_at_index(result, idx, op)
+  def add(ops_index, %{insert: idx} = op) do
+    insert_at_index(ops_index, idx, op)
   end
-
-  defp index_operation(op, result) do
-    replace_at_index(result, Operation.index(op), op)
+  def add(ops_index, op) do
+    replace_at_index(ops_index, Operation.index(op), op)
   end
 
   defp insert_at_index(list, idx, val) do
