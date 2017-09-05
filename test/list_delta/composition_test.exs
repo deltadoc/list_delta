@@ -87,7 +87,7 @@ defmodule ListDelta.CompositionTest do
       assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, "text")]
     end
 
-    test "two times with with replace" do
+    test "two times with replace" do
       a =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
@@ -96,6 +96,18 @@ defmodule ListDelta.CompositionTest do
       assert ops(ListDelta.compose(a, b)) == [
         Operation.insert(0, 3),
         Operation.insert(0, "text")
+      ]
+    end
+
+    test "two times with replace of the second element" do
+      a =
+        ListDelta.new()
+        |> ListDelta.insert(0, 3)
+        |> ListDelta.insert(0, nil)
+      b = ListDelta.replace(1, "text")
+      assert ops(ListDelta.compose(a, b)) == [
+        Operation.insert(0, "text"),
+        Operation.insert(0, nil)
       ]
     end
 
@@ -123,6 +135,18 @@ defmodule ListDelta.CompositionTest do
       assert ops(ListDelta.compose(a, b)) == [
         Operation.insert(0, 3),
         Operation.insert(0, "text")
+      ]
+    end
+
+    test "two times with change of second element" do
+      a =
+        ListDelta.new()
+        |> ListDelta.insert(0, 3)
+        |> ListDelta.insert(0, nil)
+      b = ListDelta.change(1, "text")
+      assert ops(ListDelta.compose(a, b)) == [
+        Operation.insert(0, "text"),
+        Operation.insert(0, nil)
       ]
     end
 
