@@ -8,49 +8,41 @@ defmodule ListDelta.Composition do
   end
 
   defp do_compose(:noop, ops_index), do: ops_index
-
-  defp do_compose(%{insert: idx, init: init} = ins, ops_index) do
-    case Enum.at(ops_index, idx, :noop) do
-      %{remove: _} ->
-        Index.replace_at(ops_index, idx, Operation.replace(idx, init))
-      _ ->
-        Index.add(ops_index, ins)
-    end
+  defp do_compose(new_op, ops_index) do
+    existing_op = Enum.at(ops_index, Operation.index(new_op), :noop)
+    do_compose(existing_op, new_op, ops_index)
   end
 
-  defp do_compose(%{replace: idx, init: init} = rem, ops_index) do
-    case Enum.at(ops_index, idx, :noop) do
-      %{insert: prev_idx} ->
-        Index.replace_at(ops_index, idx, Operation.insert(prev_idx, init))
-      _ ->
-        Index.add(ops_index, rem)
-    end
+  defp do_compose(%{insert: _},
+                  %{remove: idx}, ops_index) do
+    List.delete_at(ops_index, idx)
+  end
+  defp do_compose(%{insert: idx},
+                  %{replace: _, init: init}, ops_index) do
+    List.replace_at(ops_index, idx, Operation.insert(idx, init))
+  end
+  defp do_compose(%{insert: idx, init: init},
+                  %{change: _, delta: delta}, ops_index) do
+    new_init = ItemDelta.compose(init, delta)
+    List.replace_at(ops_index, idx, Operation.insert(idx, new_init))
   end
 
-  defp do_compose(%{remove: idx} = rem, ops_index) do
-    case Enum.at(ops_index, idx, :noop) do
-      %{insert: _} -> Index.replace_at(ops_index, idx)
-      _ -> Index.add(ops_index, rem)
-    end
+  defp do_compose(%{remove: idx},
+                  %{insert: _, init: init}, ops_index) do
+    List.replace_at(ops_index, idx, Operation.replace(idx, init))
+  end
+  defp do_compose(%{remove: _},
+                  %{change: _}, ops_index) do
+    ops_index
   end
 
-  defp do_compose(%{change: idx, delta: delta} = chg, ops_index) do
-    case Enum.at(ops_index, idx, :noop) do
-      %{insert: prev_idx, init: init} ->
-        new_init = ItemDelta.compose(init, delta)
-        Index.replace_at(ops_index, idx, Operation.insert(prev_idx, new_init))
-      %{replace: prev_idx, init: init} ->
-        new_init = ItemDelta.compose(init, delta)
-        Index.replace_at(ops_index, idx, Operation.replace(prev_idx, new_init))
-      %{change: prev_idx, delta: prev_delta} ->
-        new_delta = ItemDelta.compose(prev_delta, delta)
-        Index.replace_at(ops_index, idx, Operation.change(prev_idx, new_delta))
-      _ ->
-        Index.add(ops_index, chg)
-    end
+  defp do_compose(%{replace: idx, init: init},
+                  %{change: _, delta: delta}, ops_index) do
+    new_init = ItemDelta.compose(init, delta)
+    List.replace_at(ops_index, idx, Operation.replace(idx, new_init))
   end
 
-  defp do_compose(op, ops_index) do
-    Index.add(ops_index, op)
+  defp do_compose(_left, right, ops_index) do
+    Index.add(ops_index, right)
   end
 end
