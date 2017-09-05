@@ -42,6 +42,12 @@ defmodule ListDelta.Composition do
     Index.replace_at(ops_index, idx, Operation.replace(idx, new_init))
   end
 
+  defp do_compose(%{change: idx, delta: delta_a},
+                  %{change: _, delta: delta_b}, ops_index) do
+    new_delta = ItemDelta.compose(delta_a, delta_b)
+    Index.replace_at(ops_index, idx, Operation.change(idx, new_delta))
+  end
+
   defp do_compose(_left, right, ops_index) do
     Index.add(ops_index, right)
   end
