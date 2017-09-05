@@ -328,5 +328,41 @@ defmodule ListDelta.CompositionTest do
     end
   end
 
+  describe "normalisation" do
+    @tag :skip
+    test "of index streaks" do
+      delta_a =
+        ListDelta.new()
+        |> ListDelta.insert(0, "A")
+        |> ListDelta.insert(0, "B")
+        |> ListDelta.insert(0, "C")
+        |> ListDelta.insert(0, "D")
+      delta_b =
+        ListDelta.new()
+        |> ListDelta.insert(0, "D")
+        |> ListDelta.insert(1, "C")
+        |> ListDelta.insert(2, "B")
+        |> ListDelta.insert(3, "A")
+      assert delta_a == delta_b
+    end
+
+    @tag :skip
+    test "of index streaks with gaps" do
+      delta_a =
+        ListDelta.new()
+        |> ListDelta.insert(0, "A")
+        |> ListDelta.insert(0, "B")
+        |> ListDelta.insert(3, "F")
+        |> ListDelta.insert(3, "E")
+      delta_b =
+        ListDelta.new()
+        |> ListDelta.insert(0, "B")
+        |> ListDelta.insert(1, "A")
+        |> ListDelta.insert(3, "E")
+        |> ListDelta.insert(4, "F")
+      assert delta_a == delta_b
+    end
+  end
+
   defp ops(delta), do: ListDelta.operations(delta)
 end
