@@ -1,6 +1,7 @@
 defmodule ListDelta.IndexTest do
   use ExUnit.Case
   alias ListDelta.{Index, Operation}
+  doctest Index
 
   describe "indexing" do
     test "of single operation at zero point" do
