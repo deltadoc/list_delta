@@ -331,7 +331,6 @@ defmodule ListDelta.CompositionTest do
   end
 
   describe "normalisation" do
-    @tag :skip
     test "of index streaks" do
       delta_a =
         ListDelta.new()
@@ -348,7 +347,6 @@ defmodule ListDelta.CompositionTest do
       assert delta_a == delta_b
     end
 
-    @tag :skip
     test "of index streaks with gaps" do
       delta_a =
         ListDelta.new()
