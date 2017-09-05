@@ -9,17 +9,19 @@ defmodule ListDelta.Index do
   def add(ops_index, %{insert: idx} = op) do
     ops_index
     |> insert_at_index(idx, op)
-    |> reindex_inserts()
-  end
-  def add(ops_index, op) do
-    replace_at_index(ops_index, Operation.index(op), op)
+    |> reindex_ops()
   end
 
-  def to_ordered_operations(ops_index) do
+  def add(ops_index, op) do
     ops_index
-    |> Enum.chunk_by(&insert_with_index?/1)
-    |> Enum.map(&Enum.reverse/1)
-    |> List.flatten()
+    |> replace_at_index(Operation.index(op), op)
+    |> reindex_ops()
+  end
+
+  def to_operations(ops_index) do
+    ops_index
+    |> List.foldl([], &prepend_op(&2, &1))
+    |> Enum.reverse()
     |> Enum.filter(&(&1 != :noop))
   end
 
@@ -35,22 +37,29 @@ defmodule ListDelta.Index do
     |> List.replace_at(idx, val)
   end
 
-  defp reindex_inserts(ops_index) do
+  defp reindex_ops(ops_index) do
     ops_index
-    |> Enum.with_index()
-    |> Enum.map(&reindex_insert/1)
+    |> Enum.map_reduce(0, &reindex_op/2)
+    |> elem(0)
   end
 
-  defp reindex_insert({op, actual_idx}) do
-    case op do
-      %{insert: _, init: init} -> Operation.insert(actual_idx, init)
-      _ -> op
-    end
+  defp reindex_op(:noop, actual_idx), do: {:noop, actual_idx + 1}
+
+  defp reindex_op(%{remove: _} = op, actual_idx) do
+    {Operation.change_index(op, actual_idx), actual_idx}
   end
+
+  defp reindex_op(op, actual_idx) do
+    {Operation.change_index(op, actual_idx), actual_idx + 1}
+  end
+
+  defp prepend_op([%{insert: prev_idx} = prev_ins | remainder],
+                   %{insert: _, init: init}) do
+    [prev_ins | prepend_op(remainder, Operation.insert(prev_idx, init))]
+  end
+
+  defp prepend_op(ops, op), do: [op | ops]
 
   defp ensure_length(list, idx) when length(list) >= idx, do: list
   defp ensure_length(list, idx), do: ensure_length(list ++ [:noop], idx)
-
-  defp insert_with_index?(%{insert: idx}), do: {true, idx}
-  defp insert_with_index?(_op), do: {false, 0}
 end

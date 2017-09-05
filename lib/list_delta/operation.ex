@@ -13,4 +13,9 @@ defmodule ListDelta.Operation do
   def index(%{remove: idx}), do: idx
   def index(%{replace: idx}), do: idx
   def index(%{change: idx}), do: idx
+
+  def change_index(%{insert: _, init: init}, idx), do: insert(idx, init)
+  def change_index(%{remove: _}, idx), do: remove(idx)
+  def change_index(%{replace: _, init: init}, idx), do: replace(idx, init)
+  def change_index(%{change: _, delta: delta}, idx), do: change(idx, delta)
 end
