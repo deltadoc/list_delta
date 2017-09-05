@@ -345,6 +345,12 @@ defmodule ListDelta.CompositionTest do
         |> ListDelta.insert(2, "B")
         |> ListDelta.insert(3, "A")
       assert delta_a == delta_b
+      assert ops(delta_a) == [
+        Operation.insert(0, "A"),
+        Operation.insert(0, "B"),
+        Operation.insert(0, "C"),
+        Operation.insert(0, "D")
+      ]
     end
 
     test "of index streaks with gaps" do
@@ -361,6 +367,12 @@ defmodule ListDelta.CompositionTest do
         |> ListDelta.insert(3, "E")
         |> ListDelta.insert(4, "F")
       assert delta_a == delta_b
+      assert ops(delta_a) == [
+        Operation.insert(0, "A"),
+        Operation.insert(0, "B"),
+        Operation.insert(3, "F"),
+        Operation.insert(3, "E")
+      ]
     end
   end
 
