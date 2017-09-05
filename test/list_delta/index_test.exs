@@ -20,19 +20,26 @@ defmodule ListDelta.IndexTest do
 
     test "of two inserts at the same insert point" do
       ops = [
-        op1 = Operation.insert(0, 3),
-        op2 = Operation.insert(0, 5)
+        Operation.insert(0, 3),
+        Operation.insert(0, 5)
       ]
-      assert Index.new(ops) == [op2, op1]
+      assert Index.new(ops) == [
+        Operation.insert(0, 5),
+        Operation.insert(1, 3)
+      ]
     end
 
     test "of three inserts at the same insert point" do
       ops = [
-        op1 = Operation.insert(0, 3),
-        op2 = Operation.insert(0, 5),
-        op3 = Operation.insert(0, 6)
+        Operation.insert(0, 3),
+        Operation.insert(0, 5),
+        Operation.insert(0, 6)
       ]
-      assert Index.new(ops) == [op3, op2, op1]
+      assert Index.new(ops) == [
+        Operation.insert(0, 6),
+        Operation.insert(1, 5),
+        Operation.insert(2, 3)
+      ]
     end
 
     test "of two inserts at two insert points separated by noop" do
@@ -45,13 +52,20 @@ defmodule ListDelta.IndexTest do
 
     test "of two inserts separated by noop, provided in reverse order" do
       ops = [
-        op1 = Operation.insert(3, 3),
-        op2 = Operation.insert(0, 6)
+        Operation.insert(3, 3),
+        Operation.insert(0, 6)
       ]
-      assert Index.new(ops) == [op2, :noop, :noop, :noop, op1]
+      assert Index.new(ops) == [
+        Operation.insert(0, 6),
+        :noop,
+        :noop,
+        :noop,
+        Operation.insert(4, 3)
+      ]
     end
 
     test "of single operation at non-zero point" do
+      assert Index.new([op = Operation.insert(1, "B")]) == [:noop, op]
       assert Index.new([op = Operation.remove(1)]) == [:noop, op]
       assert Index.new([op = Operation.replace(1, 3)]) == [:noop, op]
       assert Index.new([op = Operation.change(1, 5)]) == [:noop, op]
@@ -63,6 +77,50 @@ defmodule ListDelta.IndexTest do
         op2 = Operation.remove(0)
       ]
       assert Index.new(ops) == [op2, :noop, :noop, op1]
+    end
+  end
+
+  describe "converting to ordered operations" do
+    test "of single operation at zero point" do
+      assert Index.to_ordered_operations([op = Operation.insert(0, 3)]) == [op]
+      assert Index.to_ordered_operations([op = Operation.remove(0)]) == [op]
+      assert Index.to_ordered_operations([op = Operation.replace(0, 3)]) == [op]
+      assert Index.to_ordered_operations([op = Operation.change(0, 3)]) == [op]
+    end
+
+    test "of two inserts at different insert points" do
+      ops_index = [
+        op1 = Operation.insert(0, 3),
+        op2 = Operation.insert(1, 5)
+      ]
+      assert Index.to_ordered_operations(ops_index) == [op1, op2]
+    end
+
+    test "of two inserts at the same insert point" do
+      ops_index = [
+        op2 = Operation.insert(0, 5),
+        op1 = Operation.insert(0, 3)
+      ]
+      assert Index.to_ordered_operations(ops_index) == [op1, op2]
+    end
+
+    test "of three inserts at the same insert point" do
+      ops_index = [
+        op3 = Operation.insert(0, 6),
+        op2 = Operation.insert(0, 5),
+        op1 = Operation.insert(0, 3)
+      ]
+      assert Index.to_ordered_operations(ops_index) == [op1, op2, op3]
+    end
+
+    test "of two inserts at two insert points separated by noop" do
+      ops_index = [
+        op1 = Operation.insert(0, 3),
+        :noop,
+        :noop,
+        op2 = Operation.insert(3, 6)
+      ]
+      assert Index.to_ordered_operations(ops_index) == [op1, op2]
     end
   end
 end
