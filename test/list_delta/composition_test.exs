@@ -2,9 +2,9 @@ defmodule ListDelta.CompositionTest do
   use ExUnit.Case
   use EQC.ExUnit
 
-  alias ListDelta.{Operation, Composition}
-  import ListDelta.Generators
+  alias ListDelta.{Operation, Generators, Composition}
 
+  import Generators
   doctest Composition
 
   property "(a + b) + c = a + (b + c)" do
