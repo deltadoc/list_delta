@@ -1,6 +1,8 @@
 defmodule ListDelta.Composition do
   alias ListDelta.{Operation, ItemDelta}
 
+  import Operation
+
   def compose(first, second) do
     first_ops_reversed =
       first
@@ -13,10 +15,18 @@ defmodule ListDelta.Composition do
     |> wrap_into_delta()
   end
 
+  #
+  # Special rules for composing `insert` operations
+  #
+
   defp prepend(%{insert: idx, init: init},
               [%{remove: idx} | remainder]) do
-    [Operation.replace(idx, init) | remainder]
+    [replace(idx, init) | remainder]
   end
+
+  #
+  # Special rules for composing `remove` operations
+  #
 
   defp prepend(%{remove: idx},
               [%{insert: idx} | remainder]) do
@@ -24,64 +34,80 @@ defmodule ListDelta.Composition do
   end
 
   defp prepend(%{remove: idx},
-              [%{remove: idx} | _] = ops) do
-    ops
+              [%{remove: idx} | _] = operations) do
+    operations
   end
 
-  defp prepend(%{remove: idx} = new_rem,
+  defp prepend(%{remove: idx} = remove,
               [%{replace: idx} | remainder]) do
-    [new_rem | remainder]
+    [remove | remainder]
   end
 
   defp prepend(%{remove: new_idx},
               [%{move: orig_idx, to: new_idx} | remainder]) do
-    [Operation.remove(orig_idx) | remainder]
+    [remove(orig_idx) | remainder]
   end
 
-  defp prepend(%{remove: idx} = new_rem,
+  defp prepend(%{remove: idx} = remove,
               [%{change: idx} | remainder]) do
-    [new_rem | remainder]
+    [remove | remainder]
   end
+
+  #
+  # Special rules for composing `replace` operations
+  #
 
   defp prepend(%{replace: idx, init: new_init},
               [%{insert: idx} | remainder]) do
-    [Operation.insert(idx, new_init) | remainder]
+    [insert(idx, new_init) | remainder]
   end
 
-  defp prepend(%{replace: idx} = new_rep,
+  defp prepend(%{replace: idx} = replace,
               [%{replace: idx} | remainder]) do
-    [new_rep | remainder]
+    [replace | remainder]
   end
 
-  defp prepend(%{replace: idx} = new_rep,
+  defp prepend(%{replace: idx} = replace,
               [%{change: idx} | remainder]) do
-    [new_rep | remainder]
+    [replace | remainder]
   end
+
+  #
+  # Special rules for composing `move` operations
+  #
 
   defp prepend(%{move: idx, to: new_idx},
               [%{insert: idx, init: init} | remainder]) do
-    [Operation.insert(new_idx, init) | remainder]
+    [insert(new_idx, init) | remainder]
   end
 
   defp prepend(%{move: interim_idx, to: final_idx},
               [%{move: orig_idx, to: interim_idx} | remainder]) do
-    [Operation.move(orig_idx, final_idx) | remainder]
+    [move(orig_idx, final_idx) | remainder]
   end
+
+  #
+  # Special rules for composing `change` operations
+  #
 
   defp prepend(%{change: idx, delta: delta},
               [%{insert: idx, init: init} | remainder]) do
-    [Operation.insert(idx, ItemDelta.compose(init, delta)) | remainder]
+    [insert(idx, ItemDelta.compose(init, delta)) | remainder]
   end
 
   defp prepend(%{change: idx, delta: delta},
               [%{replace: idx, init: init} | remainder]) do
-    [Operation.replace(idx, ItemDelta.compose(init, delta)) | remainder]
+    [replace(idx, ItemDelta.compose(init, delta)) | remainder]
   end
 
   defp prepend(%{change: idx, delta: new_delta},
               [%{change: idx, delta: orig_delta} | remainder]) do
-    [Operation.change(idx, ItemDelta.compose(orig_delta, new_delta)) | remainder]
+    [change(idx, ItemDelta.compose(orig_delta, new_delta)) | remainder]
   end
+
+  #
+  # Composing the rest
+  #
 
   defp prepend(op, ops) do
     [op | ops]
