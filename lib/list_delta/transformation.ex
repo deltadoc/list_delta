@@ -36,6 +36,11 @@ defmodule ListDelta.Transformation do
     do_transform(remainder, remove(idx + 1), :right)
   end
 
+  defp do_transform([%{insert: left_idx} | remainder],
+                     %{replace: idx, init: init}, :right) when idx >= left_idx do
+    do_transform(remainder, replace(idx + 1, init), :right)
+  end
+
   defp do_transform([%{remove: left_idx} | remainder],
                      %{insert: idx, init: init}, priority) when idx > left_idx do
     do_transform(remainder, insert(idx - 1, init), priority)

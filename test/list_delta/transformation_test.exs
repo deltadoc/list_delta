@@ -46,6 +46,27 @@ defmodule ListDelta.TransformationTest do
       assert xf(a, b, :left) == ListDelta.insert(1, "B")
       assert xf(b, a, :right) == ListDelta.remove(3)
     end
+
+    test "against replace at the same index" do
+      a = ListDelta.replace(0, "A")
+      b = ListDelta.insert(0, "B")
+      assert xf(a, b, :left) == ListDelta.insert(0, "B")
+      assert xf(b, a, :right) == ListDelta.replace(1, "A")
+    end
+
+    test "against replace at a lower index" do
+      a = ListDelta.replace(1, "A")
+      b = ListDelta.insert(2, "B")
+      assert xf(a, b, :left) == ListDelta.insert(2, "B")
+      assert xf(b, a, :right) == ListDelta.replace(1, "A")
+    end
+
+    test "against replace at a higher index" do
+      a = ListDelta.replace(2, "A")
+      b = ListDelta.insert(1, "B")
+      assert xf(a, b, :left) == ListDelta.insert(1, "B")
+      assert xf(b, a, :right) == ListDelta.replace(3, "A")
+    end
   end
 
   defp xf(left, right, priority), do: ListDelta.transform(left, right, priority)
