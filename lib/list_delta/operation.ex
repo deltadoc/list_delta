@@ -182,19 +182,4 @@ defmodule ListDelta.Operation do
   def index(%{replace: idx}), do: idx
   def index(%{move: idx}), do: idx
   def index(%{change: idx}), do: idx
-
-  @doc """
-  Changes given operation index.
-
-  ## Example
-
-      iex> ListDelta.Operation.change_index(%{insert: 3, init: "Hi"}, 5)
-      %{insert: 5, init: "Hi"}
-  """
-  @spec change_index(t, item_index) :: t
-  def change_index(op, idx)
-  def change_index(%{insert: _, init: init}, idx), do: insert(idx, init)
-  def change_index(%{remove: _}, idx), do: remove(idx)
-  def change_index(%{replace: _, init: init}, idx), do: replace(idx, init)
-  def change_index(%{change: _, delta: delta}, idx), do: change(idx, delta)
 end
