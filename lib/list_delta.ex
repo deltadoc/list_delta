@@ -1,7 +1,7 @@
 defmodule ListDelta do
   defstruct ops: []
 
-  alias ListDelta.{Operation, Composition}
+  alias ListDelta.{Operation, Composition, Transformation}
 
   def new, do: %ListDelta{}
   def new(ops), do: List.foldl(ops, new(), &append(&2, &1))
@@ -29,8 +29,8 @@ defmodule ListDelta do
   def operations(delta), do: delta.ops
 
   defdelegate compose(first, second), to: Composition
+  defdelegate transform(left, right, priority), to: Transformation
 
   defp append(delta, op), do: compose(delta, wrap(op))
-
   defp wrap(ops), do: %ListDelta{ops: List.wrap(ops)}
 end
