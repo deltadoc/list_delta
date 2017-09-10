@@ -2,10 +2,10 @@ defmodule ListDelta.CompositionTest do
   use ExUnit.Case
   use EQC.ExUnit
 
-  alias ListDelta.{Operation, Generators, Composition}
+  import ListDelta.Operation
+  import ListDelta.Generators
 
-  import Generators
-  doctest Composition
+  doctest ListDelta.Composition
 
   property "(a + b) + c = a + (b + c)" do
     forall {delta_a, delta_b} <- {delta(), delta()} do
@@ -21,459 +21,281 @@ defmodule ListDelta.CompositionTest do
   end
 
   describe "composing insert" do
-    test "with insert at different index" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.insert(2, false)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(2, false)
-      ]
+    test "with insert at a different index maintains both" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.insert(2, false)
+      assert comp(fst, snd) == [insert(0, 3), insert(2, false)]
     end
 
-    test "with insert at the same index" do
-      a = ListDelta.insert(0, 2)
-      b = ListDelta.insert(0, nil)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 2),
-        Operation.insert(0, nil)
-      ]
+    test "with insert at the same index maintains both" do
+      fst = ListDelta.insert(0, 2)
+      snd = ListDelta.insert(0, nil)
+      assert comp(fst, snd) == [insert(0, 2), insert(0, nil)]
     end
 
-    test "with insert at lower index" do
-      a = ListDelta.insert(2, 3)
-      b = ListDelta.insert(0, 5)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(2, 3),
-        Operation.insert(0, 5)
-      ]
+    test "with insert at a lower index maintains both" do
+      fst = ListDelta.insert(2, 3)
+      snd = ListDelta.insert(0, 5)
+      assert comp(fst, snd) == [insert(2, 3), insert(0, 5)]
     end
 
-    test "with remove at different index" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.remove(4)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.remove(4)
-      ]
+    test "with remove at a different index maintains both" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.remove(4)
+      assert comp(fst, snd) == [insert(0, 3), remove(4)]
     end
 
-    test "immediately followed by remove" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(a, b)) == []
+    test "immediately followed by a remove drops both operations" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.remove(0)
+      assert comp(fst, snd) == []
     end
 
-    test "two times followed by remove" do
-      a =
+    test "with insert and a remove at the same index drops second insert" do
+      fst =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
         |> ListDelta.insert(0, nil)
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, 3)]
+      snd = ListDelta.remove(0)
+      assert comp(fst, snd) == [insert(0, 3)]
     end
 
-    test "three times followed by remove" do
-      a =
+    test "with 2 inserts and a remove at the same index drops third insert" do
+      fst =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
         |> ListDelta.insert(0, nil)
         |> ListDelta.insert(0, false)
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, nil)
-      ]
+      snd = ListDelta.remove(0)
+      assert comp(fst, snd) == [insert(0, 3), insert(0, nil)]
     end
 
-    test "three times followed by remove of follow-up index" do
-      a =
+    test "with 2 inserts and a remove at a different index keeps all ops" do
+      fst =
         ListDelta.new()
         |> ListDelta.insert(0, 3)
         |> ListDelta.insert(0, nil)
         |> ListDelta.insert(0, false)
-      b = ListDelta.remove(1)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, nil),
-        Operation.insert(0, false),
-        Operation.remove(1)
+      snd = ListDelta.remove(1)
+      assert comp(fst, snd) == [
+        insert(0, 3),
+        insert(0, nil),
+        insert(0, false),
+        remove(1)
       ]
     end
 
-    test "immediately followed by replace" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.replace(0, "text")
-      assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, "text")]
+    test "with replace at the same index changes the insert init" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.replace(0, "text")
+      assert comp(fst, snd) == [insert(0, "text")]
     end
 
-    test "two times with replace" do
-      a =
-        ListDelta.new()
-        |> ListDelta.insert(0, 3)
-        |> ListDelta.insert(0, nil)
-      b = ListDelta.replace(0, "text")
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, "text")
-      ]
+    test "with replace at a different index maintains both" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.replace(2, "text")
+      assert comp(fst, snd) == [insert(0, 3), replace(2, "text")]
     end
 
-    test "two times with replace of the second element" do
-      a =
-        ListDelta.new()
-        |> ListDelta.insert(0, 3)
-        |> ListDelta.insert(0, nil)
-      b = ListDelta.replace(1, "text")
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, nil),
-        Operation.replace(1, "text")
-      ]
+    test "with change at the same index updates the insert init" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.change(0, 6)
+      assert comp(fst, snd) == [insert(0, 6)]
     end
 
-    test "with replace at different index" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.replace(2, "text")
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.replace(2, "text")
-      ]
+    test "with change at a different index maintains both" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.change(2, "text")
+      assert comp(fst, snd) == [insert(0, 3), change(2, "text")]
     end
 
-    test "immediately followed by change" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.change(0, 6)
-      assert ops(ListDelta.compose(a, b)) == [Operation.insert(0, 6)]
+    test "with move at the same origin index changes the insert index" do
+      fst = ListDelta.insert(0, "A")
+      snd = ListDelta.move(0, 6)
+      assert comp(fst, snd) == [insert(6, "A")]
     end
 
-    test "two times with change" do
-      a =
-        ListDelta.new()
-        |> ListDelta.insert(0, 3)
-        |> ListDelta.insert(0, nil)
-      b = ListDelta.change(0, "text")
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, "text")
-      ]
-    end
-
-    test "two times with change of second element" do
-      a =
-        ListDelta.new()
-        |> ListDelta.insert(0, 3)
-        |> ListDelta.insert(0, nil)
-      b = ListDelta.change(1, "text")
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, nil),
-        Operation.change(1, "text")
-      ]
-    end
-
-    test "with change at different index" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.change(2, "text")
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.change(2, "text")
-      ]
-    end
-
-    test "immediately followed by move" do
-      a = ListDelta.insert(0, "A")
-      b = ListDelta.move(0, 6)
-      assert ops(ListDelta.compose(a, b)) == [Operation.insert(6, "A")]
-    end
-
-    test "two times with move" do
-      a =
-        ListDelta.new()
-        |> ListDelta.insert(0, 3)
-        |> ListDelta.insert(0, nil)
-      b = ListDelta.move(0, 3)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(3, nil)
-      ]
-    end
-
-    test "two times with move of second element" do
-      a =
-        ListDelta.new()
-        |> ListDelta.insert(0, 3)
-        |> ListDelta.insert(0, nil)
-      b = ListDelta.move(1, 5)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.insert(0, nil),
-        Operation.move(1, 5)
-      ]
-    end
-
-    test "with move at different index" do
-      a = ListDelta.insert(0, 3)
-      b = ListDelta.move(2, 0)
-      assert ops(ListDelta.compose(a, b)) == [
-        Operation.insert(0, 3),
-        Operation.move(2, 0)
-      ]
+    test "with move at a different index maintains both" do
+      fst = ListDelta.insert(0, 3)
+      snd = ListDelta.move(2, 0)
+      assert comp(fst, snd) == [insert(0, 3), move(2, 0)]
     end
   end
 
   describe "composing remove" do
-    @op ListDelta.remove(0)
+    @fst ListDelta.remove(0)
 
-    test "with insert at the same index" do
-      b = ListDelta.insert(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, "text")
-      ]
+    test "with insert at the same index changes insert into replace" do
+      snd = ListDelta.insert(0, "text")
+      assert comp(@fst, snd) == [replace(0, "text")]
     end
 
-    test "with insert at different index" do
-      b = ListDelta.insert(1, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0),
-        Operation.insert(1, "text")
-      ]
+    test "with insert at a different index maintains both" do
+      snd = ListDelta.insert(1, "text")
+      assert comp(@fst, snd) == [remove(0), insert(1, "text")]
     end
 
-    test "with change" do
-      b = ListDelta.change(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0),
-        Operation.change(0, "text")
-      ]
+    test "with change maintains both" do
+      snd = ListDelta.change(0, "text")
+      assert comp(@fst, snd) == [remove(0), change(0, "text")]
     end
 
-    test "with remove at the same index" do
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0)
-      ]
+    test "with remove at the same index drops second remove" do
+      snd = ListDelta.remove(0)
+      assert comp(@fst, snd) == [remove(0)]
     end
 
-    test "with remove at different index" do
-      b = ListDelta.remove(1)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0),
-        Operation.remove(1)
-      ]
+    test "with remove at a different index maintains both" do
+      snd = ListDelta.remove(1)
+      assert comp(@fst, snd) == [remove(0), remove(1)]
     end
 
-    test "with replace" do
-      b = ListDelta.replace(0, 5)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0),
-        Operation.replace(0, 5)
-      ]
+    test "with replace maintains both" do
+      snd = ListDelta.replace(0, 5)
+      assert comp(@fst, snd) == [remove(0), replace(0, 5)]
     end
 
-    test "with move" do
-      b = ListDelta.move(0, 3)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0),
-        Operation.move(0, 3)
-      ]
+    test "with move maintains both" do
+      snd = ListDelta.move(0, 3)
+      assert comp(@fst, snd) == [remove(0), move(0, 3)]
     end
   end
 
   describe "composing replace" do
-    @op ListDelta.replace(0, 123)
+    @fst ListDelta.replace(0, 123)
 
-    test "with insert" do
-      b = ListDelta.insert(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 123),
-        Operation.insert(0, "text")
-      ]
+    test "with insert maintains both" do
+      snd = ListDelta.insert(0, "text")
+      assert comp(@fst, snd) == [replace(0, 123), insert(0, "text")]
     end
 
-    test "with change at the same index" do
-      b = ListDelta.change(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, "text")
-      ]
+    test "with change at the same index updates replace init" do
+      snd = ListDelta.change(0, "text")
+      assert comp(@fst, snd) == [replace(0, "text")]
     end
 
-    test "with change at different index" do
-      b = ListDelta.change(1, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 123),
-        Operation.change(1, "text")
-      ]
+    test "with change at a different index maintains both" do
+      snd = ListDelta.change(1, "text")
+      assert comp(@fst, snd) == [replace(0, 123), change(1, "text")]
     end
 
-    test "with remove at the same index" do
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0)
-      ]
+    test "with remove at the same index removes replace" do
+      snd = ListDelta.remove(0)
+      assert comp(@fst, snd) == [remove(0)]
     end
 
-    test "with remove at different index" do
-      b = ListDelta.remove(1)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 123),
-        Operation.remove(1)
-      ]
+    test "with remove at a different index maintains both" do
+      snd = ListDelta.remove(1)
+      assert comp(@fst, snd) == [replace(0, 123), remove(1)]
     end
 
-    test "with replace at the same index" do
-      b = ListDelta.replace(0, 5)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 5)
-      ]
+    test "with replace at the same index removes first replace" do
+      snd = ListDelta.replace(0, 5)
+      assert comp(@fst, snd) == [replace(0, 5)]
     end
 
-    test "with replace at different index" do
-      b = ListDelta.replace(1, 5)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 123),
-        Operation.replace(1, 5)
-      ]
+    test "with replace at a different index maintains both" do
+      snd = ListDelta.replace(1, 5)
+      assert comp(@fst, snd) == [replace(0, 123), replace(1, 5)]
     end
 
-    test "with move" do
-      b = ListDelta.move(0, 3)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 123),
-        Operation.move(0, 3)
-      ]
+    test "with move maintains both" do
+      snd = ListDelta.move(0, 3)
+      assert comp(@fst, snd) == [replace(0, 123), move(0, 3)]
     end
   end
 
   describe "composing move" do
-    @op ListDelta.move(0, 3)
+    @fst ListDelta.move(0, 3)
 
-    test "with insert" do
-      b = ListDelta.insert(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.insert(0, "text")
-      ]
+    test "with insert maintains both" do
+      snd = ListDelta.insert(0, "text")
+      assert comp(@fst, snd) == [move(0, 3), insert(0, "text")]
     end
 
-    test "with remove at the same origin index" do
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.remove(0)
-      ]
+    test "with remove at the same origin index maintains both" do
+      snd = ListDelta.remove(0)
+      assert comp(@fst, snd) == [move(0, 3), remove(0)]
     end
 
-    test "with remove at the same destination index" do
-      b = ListDelta.remove(3)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0)
-      ]
+    test "with remove at the same destination index changes remove index" do
+      snd = ListDelta.remove(3)
+      assert comp(@fst, snd) == [remove(0)]
     end
 
-    test "with remove at different origin and destination indexes" do
-      b = ListDelta.remove(2)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.remove(2)
-      ]
+    test "with remove at different indexes maintains both" do
+      snd = ListDelta.remove(2)
+      assert comp(@fst, snd) == [move(0, 3), remove(2)]
     end
 
-    test "with replace" do
-      b = ListDelta.replace(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.replace(0, "text")
-      ]
+    test "with replace maintains both" do
+      snd = ListDelta.replace(0, "text")
+      assert comp(@fst, snd) == [move(0, 3), replace(0, "text")]
     end
 
-    test "with move at the same origin index" do
-      b = ListDelta.move(0, 2)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.move(0, 2)
-      ]
+    test "with move at the same origin index maintains both" do
+      snd = ListDelta.move(0, 2)
+      assert comp(@fst, snd) == [move(0, 3), move(0, 2)]
     end
 
-    test "with move at the same destination index" do
-      b = ListDelta.move(3, 2)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 2)
-      ]
+    test "with move at the same destination index groups them into one" do
+      snd = ListDelta.move(3, 2)
+      assert comp(@fst, snd) == [move(0, 2)]
     end
 
-    test "with move at different origin and destination indexes" do
-      b = ListDelta.move(2, 5)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.move(2, 5)
-      ]
+    test "with move at different indexes maintains both" do
+      snd = ListDelta.move(2, 5)
+      assert comp(@fst, snd) == [move(0, 3), move(2, 5)]
     end
 
-    test "with change" do
-      b = ListDelta.change(0, "B")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.move(0, 3),
-        Operation.change(0, "B")
-      ]
+    test "with change maintains both" do
+      snd = ListDelta.change(0, "B")
+      assert comp(@fst, snd) == [move(0, 3), change(0, "B")]
     end
   end
 
   describe "composing change" do
-    @op ListDelta.change(0, "abc")
+    @fst ListDelta.change(0, "abc")
 
-    test "with insert" do
-      b = ListDelta.insert(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, "abc"),
-        Operation.insert(0, "text")
-      ]
+    test "with insert maintains both" do
+      snd = ListDelta.insert(0, "text")
+      assert comp(@fst, snd) == [change(0, "abc"), insert(0, "text")]
     end
 
-    test "with change at the same index" do
-      b = ListDelta.change(0, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, "text")
-      ]
+    test "with change at the same index composes changes" do
+      snd = ListDelta.change(0, "text")
+      assert comp(@fst, snd) == [change(0, "text")]
     end
 
-    test "with change at different index" do
-      b = ListDelta.change(1, "text")
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, "abc"),
-        Operation.change(1, "text")
-      ]
+    test "with change at a different index maintains both" do
+      snd = ListDelta.change(1, "text")
+      assert comp(@fst, snd) == [change(0, "abc"), change(1, "text")]
     end
 
-    test "with remove at the same index" do
-      b = ListDelta.remove(0)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.remove(0)
-      ]
+    test "with remove at the same index drops change" do
+      snd = ListDelta.remove(0)
+      assert comp(@fst, snd) == [remove(0)]
     end
 
-    test "with remove at different index" do
-      b = ListDelta.remove(1)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, "abc"),
-        Operation.remove(1)
-      ]
+    test "with remove at a different index maintains both" do
+      snd = ListDelta.remove(1)
+      assert comp(@fst, snd) == [change(0, "abc"), remove(1)]
     end
 
-    test "with replace at the same index" do
-      b = ListDelta.replace(0, 5)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.replace(0, 5)
-      ]
+    test "with replace at the same index drops change" do
+      snd = ListDelta.replace(0, 5)
+      assert comp(@fst, snd) == [replace(0, 5)]
     end
 
-    test "with replace at different index" do
-      b = ListDelta.replace(1, 5)
-      assert ops(ListDelta.compose(@op, b)) == [
-        Operation.change(0, "abc"),
-        Operation.replace(1, 5)
-      ]
+    test "with replace at a different index maintains both" do
+      snd = ListDelta.replace(1, 5)
+      assert comp(@fst, snd) == [change(0, "abc"), replace(1, 5)]
     end
   end
 
-  defp ops(delta), do: ListDelta.operations(delta)
+  defp comp(first, second) do
+    first
+    |> ListDelta.compose(second)
+    |> ListDelta.operations()
+  end
 end
