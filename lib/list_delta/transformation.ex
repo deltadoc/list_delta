@@ -16,37 +16,36 @@ defmodule ListDelta.Transformation do
     Enum.map(ops, &do_transform(left_ops, &1, priority))
   end
 
-  defp do_transform([%{insert: _} | remainder],
-                     %{insert: _} = insert, :right) do
-    do_transform(remainder, insert, :right)
-  end
-
-  defp do_transform([%{insert: left_idx} | remainder],
-                     %{insert: idx, init: init}, :left) when idx >= left_idx do
+  defp do_transform([%{insert: lft_idx} | remainder],
+                     %{insert: idx, init: init}, :left) when idx >= lft_idx do
     do_transform(remainder, insert(idx + 1, init), :left)
   end
 
-  defp do_transform([%{insert: left_idx} | remainder],
+  defp do_transform([%{insert: lft_idx} | remainder],
                      %{insert: _} = insert, :left) do
-    do_transform(remainder, [move(left_idx, left_idx - 1), insert], :left)
+    do_transform(remainder, [move(lft_idx, lft_idx - 1), insert], :left)
   end
 
-  defp do_transform([%{insert: left_idx} | remainder],
-                     %{remove: idx}, :right) when idx >= left_idx do
+  defp do_transform([%{insert: lft_idx} | remainder],
+                     %{remove: idx}, :right) when idx >= lft_idx do
     do_transform(remainder, remove(idx + 1), :right)
   end
 
-  defp do_transform([%{insert: left_idx} | remainder],
-                     %{replace: idx, init: init}, :right) when idx >= left_idx do
+  defp do_transform([%{insert: lft_idx} | remainder],
+                     %{replace: idx, init: init}, :right) when idx >= lft_idx do
     do_transform(remainder, replace(idx + 1, init), :right)
   end
 
-  defp do_transform([%{remove: left_idx} | remainder],
-                     %{insert: idx, init: init}, priority) when idx > left_idx do
+  defp do_transform([%{remove: lft_idx} | remainder],
+                     %{insert: idx, init: init}, priority) when idx > lft_idx do
     do_transform(remainder, insert(idx - 1, init), priority)
   end
 
-  defp do_transform(_left_ops, op, _priority) do
+  defp do_transform([_ | remainder], op, priority) do
+    do_transform(remainder, op, priority)
+  end
+
+  defp do_transform([], op, _priority) do
     op
   end
 
