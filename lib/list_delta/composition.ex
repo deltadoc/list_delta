@@ -1,64 +1,90 @@
 defmodule ListDelta.Composition do
-  alias ListDelta.{Index, Operation, ItemDelta}
+  alias ListDelta.{Operation, ItemDelta}
 
   def compose(first, second) do
-    index =
+    first_ops_reversed =
       first
       |> ListDelta.operations()
-      |> Index.from_operations()
+      |> Enum.reverse()
     second
     |> ListDelta.operations()
-    |> List.foldl(index, &compose_op_with_index/2)
-    |> Index.to_operations()
+    |> List.foldl(first_ops_reversed, &prepend/2)
+    |> Enum.reverse()
     |> wrap_into_delta()
   end
 
-  defp compose_op_with_index(:noop, ops_index), do: ops_index
-  defp compose_op_with_index(new_op, ops_index) do
-    ops_index
-    |> Enum.at(Operation.index(new_op), :noop)
-    |> compose_op(new_op, ops_index)
+  defp prepend(%{insert: idx, init: init},
+              [%{remove: idx} | remainder]) do
+    [Operation.replace(idx, init) | remainder]
   end
 
-  defp compose_op(%{insert: _},
-                  %{remove: idx}, ops_index) do
-    Index.delete_at(ops_index, idx)
-  end
-  defp compose_op(%{insert: idx},
-                  %{replace: _, init: init}, ops_index) do
-    Index.replace_at(ops_index, idx, Operation.insert(idx, init))
-  end
-  defp compose_op(%{insert: idx, init: init},
-                  %{change: _, delta: delta}, ops_index) do
-    new_init = ItemDelta.compose(init, delta)
-    Index.replace_at(ops_index, idx, Operation.insert(idx, new_init))
+  defp prepend(%{remove: idx},
+              [%{insert: idx} | remainder]) do
+    remainder
   end
 
-  defp compose_op(%{remove: idx},
-                  %{insert: _, init: init}, ops_index) do
-    Index.replace_at(ops_index, idx, Operation.replace(idx, init))
-  end
-  defp compose_op(%{remove: _},
-                  %{change: _}, ops_index) do
-    # this should never happen,
-    # so when it does - we don't care about the op
-    ops_index
+  defp prepend(%{remove: idx},
+              [%{remove: idx} | _] = ops) do
+    ops
   end
 
-  defp compose_op(%{replace: idx, init: init},
-                  %{change: _, delta: delta}, ops_index) do
-    new_init = ItemDelta.compose(init, delta)
-    Index.replace_at(ops_index, idx, Operation.replace(idx, new_init))
+  defp prepend(%{remove: idx} = new_rem,
+              [%{replace: idx} | remainder]) do
+    [new_rem | remainder]
   end
 
-  defp compose_op(%{change: idx, delta: delta_a},
-                  %{change: _, delta: delta_b}, ops_index) do
-    new_delta = ItemDelta.compose(delta_a, delta_b)
-    Index.replace_at(ops_index, idx, Operation.change(idx, new_delta))
+  defp prepend(%{remove: new_idx},
+              [%{move: orig_idx, to: new_idx} | remainder]) do
+    [Operation.remove(orig_idx) | remainder]
   end
 
-  defp compose_op(_left, right, ops_index) do
-    Index.add(ops_index, right)
+  defp prepend(%{remove: idx} = new_rem,
+              [%{change: idx} | remainder]) do
+    [new_rem | remainder]
+  end
+
+  defp prepend(%{replace: idx, init: new_init},
+              [%{insert: idx} | remainder]) do
+    [Operation.insert(idx, new_init) | remainder]
+  end
+
+  defp prepend(%{replace: idx} = new_rep,
+              [%{replace: idx} | remainder]) do
+    [new_rep | remainder]
+  end
+
+  defp prepend(%{replace: idx} = new_rep,
+              [%{change: idx} | remainder]) do
+    [new_rep | remainder]
+  end
+
+  defp prepend(%{move: idx, to: new_idx},
+              [%{insert: idx, init: init} | remainder]) do
+    [Operation.insert(new_idx, init) | remainder]
+  end
+
+  defp prepend(%{move: interim_idx, to: final_idx},
+              [%{move: orig_idx, to: interim_idx} | remainder]) do
+    [Operation.move(orig_idx, final_idx) | remainder]
+  end
+
+  defp prepend(%{change: idx, delta: delta},
+              [%{insert: idx, init: init} | remainder]) do
+    [Operation.insert(idx, ItemDelta.compose(init, delta)) | remainder]
+  end
+
+  defp prepend(%{change: idx, delta: delta},
+              [%{replace: idx, init: init} | remainder]) do
+    [Operation.replace(idx, ItemDelta.compose(init, delta)) | remainder]
+  end
+
+  defp prepend(%{change: idx, delta: new_delta},
+              [%{change: idx, delta: orig_delta} | remainder]) do
+    [Operation.change(idx, ItemDelta.compose(orig_delta, new_delta)) | remainder]
+  end
+
+  defp prepend(op, ops) do
+    [op | ops]
   end
 
   defp wrap_into_delta(ops), do: %ListDelta{ops: ops}

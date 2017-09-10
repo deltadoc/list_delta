@@ -2,7 +2,7 @@ defmodule ListDelta.Operation do
   @moduledoc """
   Operations represent smallest possible change applicable to a list.
 
-  This library differentiates 4 list operations:
+  This library differentiates 5 list operations:
 
   - `t:ListDelta.Operation.insert/0`: insert item into a list at specified
     index. Insert operation is the same as most linked list operations.
@@ -10,6 +10,8 @@ defmodule ListDelta.Operation do
     list.
   - `t:ListDelta.Operation.replace/0`: replace item under specified index with
     different init value (delta).
+  - `t:ListDelta.Operation.move/0`: move item under specified index to another
+    index.
   - `t:ListDelta.Operation.change/0`: change value of an item under specified
     index.
 
@@ -40,9 +42,6 @@ defmodule ListDelta.Operation do
 
       insert 0, c + insert 1, b + insert 2, a
 
-  From the ListDelta point of view these two sets of operations are considered
-  equal. You can learn more about that in `ListDelta.Index`.
-
   Item value is provided via `init` key and must be a value that has appropriate
   `ListDelta.ItemDelta` implementation. You can think of it as an initial delta
   of a value. This value would be composed with all consequent change deltas.
@@ -64,6 +63,13 @@ defmodule ListDelta.Operation do
   @type replace :: %{replace: item_index, init: item_delta}
 
   @typedoc """
+  Move operation represents an intention to move existing item in the list.
+
+  New index is provided via `to` key.
+  """
+  @type move :: %{move: item_index, to: item_index}
+
+  @typedoc """
   Change operation represents an intention to change an item value in a list.
 
   Value change is provided via `delta` key and must be compatible with both the
@@ -74,12 +80,12 @@ defmodule ListDelta.Operation do
   @typedoc """
   An operation. Either `insert`, `remove`, `replace` or `change`.
   """
-  @type t :: insert | remove | replace | change
+  @type t :: insert | remove | replace | move | change
 
   @typedoc """
   Atom representing operation type.
   """
-  @type type :: :insert | :remove | :replace | :change
+  @type type :: :insert | :remove | :replace | :move | :change
 
   @typedoc """
   A list item index represented as a non-negative integer.
@@ -125,6 +131,17 @@ defmodule ListDelta.Operation do
   def replace(idx, new_init), do: %{replace: idx, init: new_init}
 
   @doc """
+  Creates a new `move` operation.
+
+  ## Example
+
+      iex> ListDelta.Operation.move(2, 3)
+      %{move: 2, to: 3}
+  """
+  @spec move(item_index, item_index) :: move
+  def move(idx, new_idx), do: %{move: idx, to: new_idx}
+
+  @doc """
   Creates a new `change` operation.
 
   ## Example
@@ -163,6 +180,7 @@ defmodule ListDelta.Operation do
   def index(%{insert: idx}), do: idx
   def index(%{remove: idx}), do: idx
   def index(%{replace: idx}), do: idx
+  def index(%{move: idx}), do: idx
   def index(%{change: idx}), do: idx
 
   @doc """
