@@ -67,6 +67,13 @@ defmodule ListDelta.TransformationTest do
       assert xf(a, b, :left) == ListDelta.insert(1, "B")
       assert xf(b, a, :right) == ListDelta.replace(3, "A")
     end
+
+    test "against move at the same origin index" do
+      a = ListDelta.move(0, 2)
+      b = ListDelta.insert(0, "B")
+      assert xf(a, b, :left) == ListDelta.insert(0, "B")
+      assert xf(b, a, :right) == ListDelta.move(1, 3)
+    end
   end
 
   defp xf(left, right, priority), do: ListDelta.transform(left, right, priority)
