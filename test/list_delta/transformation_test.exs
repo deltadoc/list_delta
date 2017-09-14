@@ -145,5 +145,28 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
+  describe "transforming insert against change" do
+    test "at the same index" do
+      a = ListDelta.change(0, "A")
+      b = ListDelta.insert(0, "B")
+      assert xf(a, b, :left) == ListDelta.insert(0, "B")
+      assert xf(b, a, :right) == ListDelta.change(1, "A")
+    end
+
+    test "at a lower index" do
+      a = ListDelta.change(1, "A")
+      b = ListDelta.insert(2, "B")
+      assert xf(a, b, :left) == ListDelta.insert(2, "B")
+      assert xf(b, a, :right) == ListDelta.change(1, "A")
+    end
+
+    test "at a higher index" do
+      a = ListDelta.change(2, "A")
+      b = ListDelta.insert(1, "B")
+      assert xf(a, b, :left) == ListDelta.insert(1, "B")
+      assert xf(b, a, :right) == ListDelta.change(3, "A")
+    end
+  end
+
   defp xf(left, right, priority), do: ListDelta.transform(left, right, priority)
 end

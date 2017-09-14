@@ -43,6 +43,12 @@ defmodule ListDelta.Transformation do
   end
 
   defp transform_op(%{insert: ins_idx},
+                    %{change: chg_idx, delta: delta}, _)
+  when chg_idx >= ins_idx do
+    change(chg_idx + 1, delta)
+  end
+
+  defp transform_op(%{insert: ins_idx},
                     %{move: from_idx, to: to_idx}, _)
   when from_idx < ins_idx and to_idx >= ins_idx do
     [move(from_idx, to_idx + 1), move(ins_idx - 1, ins_idx)]
