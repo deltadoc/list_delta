@@ -116,14 +116,14 @@ defmodule ListDelta.TransformationTest do
       assert xf(b, a, :right) == ListDelta.move(2, 1)
     end
 
-    test "to the same high destination index" do
+    test "to the same high index" do
       a = ListDelta.move(1, 2)
       b = ListDelta.insert(2, "B")
       assert xf(a, b, :left) == ListDelta.insert(2, "B")
       assert xf(b, a, :right) == ListDelta.new([move(1, 3), move(1, 2)])
     end
 
-    test "from the same high destination index" do
+    test "from the same high index" do
       a = ListDelta.move(2, 1)
       b = ListDelta.insert(2, "B")
       assert xf(a, b, :left) == ListDelta.insert(2, "B")
