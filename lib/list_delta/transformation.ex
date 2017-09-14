@@ -30,24 +30,40 @@ defmodule ListDelta.Transformation do
     [move(lft_idx, lft_idx - 1), insert]
   end
 
-  defp transform_op(%{insert: lft_idx},
-                    %{remove: idx}, :right) when idx >= lft_idx do
-    remove(idx + 1)
+  defp transform_op(%{insert: ins_idx},
+                    %{remove: rem_idx}, _)
+  when rem_idx >= ins_idx do
+    remove(rem_idx + 1)
   end
 
-  defp transform_op(%{insert: lft_idx},
-                    %{replace: idx, init: init}, :right) when idx >= lft_idx do
-    replace(idx + 1, init)
+  defp transform_op(%{insert: ins_idx},
+                    %{replace: rep_idx, init: init}, _)
+  when rep_idx >= ins_idx do
+    replace(rep_idx + 1, init)
   end
 
-  defp transform_op(%{insert: lft_idx},
-                    %{move: idx, to: to_idx}, :right) when idx >= lft_idx do
-    move(idx + 1, to_idx + 1)
+  defp transform_op(%{insert: ins_idx},
+                    %{move: from_idx, to: to_idx}, _)
+  when from_idx < ins_idx and to_idx >= ins_idx do
+    [move(from_idx, to_idx + 1), move(ins_idx - 1, ins_idx)]
   end
 
-  defp transform_op(%{remove: lft_idx},
-                    %{insert: idx, init: init}, _) when idx > lft_idx do
-    insert(idx - 1, init)
+  defp transform_op(%{insert: ins_idx},
+                    %{move: from_idx, to: to_idx}, _)
+  when from_idx >= ins_idx and to_idx < ins_idx do
+    [move(from_idx + 1, to_idx), move(ins_idx, ins_idx + 1)]
+  end
+
+  defp transform_op(%{insert: ins_idx},
+                    %{move: from_idx, to: to_idx}, _)
+  when from_idx >= ins_idx do
+    move(from_idx + 1, to_idx + 1)
+  end
+
+  defp transform_op(%{remove: rem_idx},
+                    %{insert: ins_idx, init: init}, _)
+  when ins_idx > rem_idx do
+    insert(ins_idx - 1, init)
   end
 
   defp transform_op(_lft_op, op, _priority), do: op
