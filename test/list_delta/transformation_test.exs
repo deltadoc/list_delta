@@ -168,5 +168,48 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
+  describe "transforming remove against remove" do
+    test "at the same index" do
+      a = ListDelta.remove(0)
+      b = ListDelta.remove(0)
+      assert xf(a, b, :left) == ListDelta.new()
+      assert xf(b, a, :right) == ListDelta.new()
+    end
+
+    test "at a different index" do
+      a = ListDelta.remove(1)
+      b = ListDelta.remove(3)
+      assert xf(a, b, :left) == ListDelta.remove(2)
+      assert xf(b, a, :right) == ListDelta.remove(1)
+    end
+  end
+
+  describe "transforming remove against replace" do
+  end
+
+  describe "transforming remove against move" do
+  end
+
+  describe "transforming remove against change" do
+  end
+
+  describe "transforming replace against replace" do
+  end
+
+  describe "transforming replace against move" do
+  end
+
+  describe "transforming replace against change" do
+  end
+
+  describe "transforming move against move" do
+  end
+
+  describe "transforming move against change" do
+  end
+
+  describe "transforming change against change" do
+  end
+
   defp xf(left, right, priority), do: ListDelta.transform(left, right, priority)
 end
