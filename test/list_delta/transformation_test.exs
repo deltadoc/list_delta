@@ -74,70 +74,56 @@ defmodule ListDelta.TransformationTest do
   end
 
   describe "transforming insert against move" do
-    test "from the same zero index" do
+    test "from the same index to a higher one" do
       a = ListDelta.move(0, 2)
       b = ListDelta.insert(0, "B")
       assert xf(a, b, :left) == ListDelta.insert(0, "B")
       assert xf(b, a, :right) == ListDelta.move(1, 3)
     end
 
-    test "to the same zero index" do
-      a = ListDelta.move(2, 0)
-      b = ListDelta.insert(0, "B")
-      assert xf(a, b, :left) == ListDelta.insert(0, "B")
-      assert xf(b, a, :right) == ListDelta.move(3, 1)
-    end
-
-    test "from later element to an even later one" do
-      a = ListDelta.move(1, 3)
-      b = ListDelta.insert(0, "B")
-      assert xf(a, b, :left) == ListDelta.insert(0, "B")
-      assert xf(b, a, :right) == ListDelta.move(2, 4)
-    end
-
-    test "from later element to an earlier, but still later one" do
-      a = ListDelta.move(3, 2)
-      b = ListDelta.insert(0, "B")
-      assert xf(a, b, :left) == ListDelta.insert(0, "B")
-      assert xf(b, a, :right) == ListDelta.move(4, 3)
-    end
-
-    test "from earlier element to later, but still earlier one" do
-      a = ListDelta.move(1, 2)
-      b = ListDelta.insert(3, "B")
-      assert xf(a, b, :left) == ListDelta.insert(3, "B")
-      assert xf(b, a, :right) == ListDelta.move(1, 2)
-    end
-
-    test "from earlier element to an even earlier one" do
-      a = ListDelta.move(2, 1)
-      b = ListDelta.insert(3, "B")
-      assert xf(a, b, :left) == ListDelta.insert(3, "B")
-      assert xf(b, a, :right) == ListDelta.move(2, 1)
-    end
-
-    test "to the same high index" do
-      a = ListDelta.move(1, 2)
-      b = ListDelta.insert(2, "B")
-      assert xf(a, b, :left) == ListDelta.insert(2, "B")
-      assert xf(b, a, :right) == ListDelta.new([move(1, 3), move(1, 2)])
-    end
-
-    test "from the same high index" do
+    test "from the same index to a lower one" do
       a = ListDelta.move(2, 1)
       b = ListDelta.insert(2, "B")
       assert xf(a, b, :left) == ListDelta.insert(2, "B")
       assert xf(b, a, :right) == ListDelta.new([move(3, 1), move(2, 3)])
     end
 
-    test "around it from lower to higher index" do
+    test "from a higher index to the same one" do
+      a = ListDelta.move(2, 0)
+      b = ListDelta.insert(0, "B")
+      assert xf(a, b, :left) == ListDelta.insert(0, "B")
+      assert xf(b, a, :right) == ListDelta.move(3, 1)
+    end
+
+    test "from a lower index to the same one" do
+      a = ListDelta.move(1, 2)
+      b = ListDelta.insert(2, "B")
+      assert xf(a, b, :left) == ListDelta.insert(2, "B")
+      assert xf(b, a, :right) == ListDelta.new([move(1, 3), move(1, 2)])
+    end
+
+    test "between higher indexes" do
+      a = ListDelta.move(3, 2)
+      b = ListDelta.insert(0, "B")
+      assert xf(a, b, :left) == ListDelta.insert(0, "B")
+      assert xf(b, a, :right) == ListDelta.move(4, 3)
+    end
+
+    test "between lower indexes" do
+      a = ListDelta.move(1, 2)
+      b = ListDelta.insert(3, "B")
+      assert xf(a, b, :left) == ListDelta.insert(3, "B")
+      assert xf(b, a, :right) == ListDelta.move(1, 2)
+    end
+
+    test "from lower index to a higher one" do
       a = ListDelta.move(1, 3)
       b = ListDelta.insert(2, "B")
       assert xf(a, b, :left) == ListDelta.insert(2, "B")
       assert xf(b, a, :right) == ListDelta.new([move(1, 4), move(1, 2)])
     end
 
-    test "around it from higher to lower index" do
+    test "from higher index to a lower one" do
       a = ListDelta.move(3, 1)
       b = ListDelta.insert(2, "B")
       assert xf(a, b, :left) == ListDelta.insert(2, "B")
@@ -208,6 +194,29 @@ defmodule ListDelta.TransformationTest do
   end
 
   describe "transforming remove against move" do
+    test "from the same index to a higher one" do
+    end
+
+    test "from the same index to a lower one" do
+    end
+
+    test "from a higher index to the same one" do
+    end
+
+    test "from a lower index to the same one" do
+    end
+
+    test "between higher indexes" do
+    end
+
+    test "between lower indexes" do
+    end
+
+    test "from lower index to a higher one" do
+    end
+
+    test "from higher index to lower one" do
+    end
   end
 
   describe "transforming remove against change" do
