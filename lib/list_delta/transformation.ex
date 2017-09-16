@@ -72,8 +72,8 @@ defmodule ListDelta.Transformation do
     insert(ins_idx - 1, init)
   end
 
-  defp transform_op(%{remove: rem_idx},
-                    %{remove: rem_idx}, _) do
+  defp transform_op(%{remove: idx},
+                    %{remove: idx}, _) do
     []
   end
 
@@ -81,6 +81,22 @@ defmodule ListDelta.Transformation do
                     %{remove: rgt_idx}, _)
   when rgt_idx > lft_idx do
     remove(rgt_idx - 1)
+  end
+
+  defp transform_op(%{remove: idx},
+                    %{replace: idx, init: init}, _) do
+    insert(idx, init)
+  end
+
+  defp transform_op(%{remove: rem_idx},
+                    %{replace: rep_idx, init: init}, _)
+  when rep_idx > rem_idx do
+    replace(rep_idx - 1, init)
+  end
+
+  defp transform_op(%{replace: idx},
+                    %{remove: idx}, _) do
+    []
   end
 
   defp transform_op(_lft_op, op, _priority), do: op
