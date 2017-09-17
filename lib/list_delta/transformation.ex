@@ -162,13 +162,18 @@ defmodule ListDelta.Transformation do
     replace(rep_idx + 1, init)
   end
 
-  defp transform_op(%{replace: idx},
-                    %{remove: idx}, _) do
+  defp transform_op(%{replace: rep_idx},
+                    %{remove: rep_idx}, _) do
     []
   end
 
-  defp transform_op(%{replace: idx},
-                    %{replace: idx}, :left) do
+  defp transform_op(%{replace: rep_idx},
+                    %{replace: rep_idx}, :left) do
+    []
+  end
+
+  defp transform_op(%{replace: rep_idx},
+                    %{change: rep_idx}, _) do
     []
   end
 
