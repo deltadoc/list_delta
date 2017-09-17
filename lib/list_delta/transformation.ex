@@ -94,39 +94,27 @@ defmodule ListDelta.Transformation do
     replace(rep_idx - 1, init)
   end
 
-  defp transform_op(%{remove: rem_idx},
-                    %{move: rem_idx}, _) do
+  defp transform_op(%{remove: to_idx},
+                    %{move: to_idx}, _) do
     []
   end
 
-  defp transform_op(%{remove: to_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx > to_idx do
-    move(from_idx - 1, to_idx)
-  end
-
   defp transform_op(%{remove: rem_idx},
                     %{move: from_idx, to: to_idx}, _)
-  when from_idx < rem_idx and rem_idx < to_idx do
+  when from_idx < rem_idx and rem_idx <= to_idx do
     move(from_idx, to_idx - 1)
   end
 
   defp transform_op(%{remove: rem_idx},
                     %{move: from_idx, to: to_idx}, _)
-  when to_idx < rem_idx and rem_idx < from_idx do
+  when from_idx > rem_idx and rem_idx >= to_idx do
     move(from_idx - 1, to_idx)
   end
 
   defp transform_op(%{remove: rem_idx},
                     %{move: from_idx, to: to_idx}, _)
-  when from_idx > rem_idx and to_idx > rem_idx do
+  when from_idx > rem_idx and rem_idx < to_idx do
     move(from_idx - 1, to_idx - 1)
-  end
-
-  defp transform_op(%{remove: to_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx < to_idx do
-    move(from_idx, to_idx - 1)
   end
 
   defp transform_op(%{move: from_idx, to: to_idx},
