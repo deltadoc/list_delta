@@ -195,27 +195,59 @@ defmodule ListDelta.TransformationTest do
 
   describe "transforming remove against move" do
     test "from the same index to a higher one" do
+      a = ListDelta.move(0, 2)
+      b = ListDelta.remove(0)
+      assert xf(a, b, :left) == ListDelta.remove(2)
+      assert xf(b, a, :right) == ListDelta.new()
     end
 
     test "from the same index to a lower one" do
+      a = ListDelta.move(3, 1)
+      b = ListDelta.remove(3)
+      assert xf(a, b, :left) == ListDelta.remove(1)
+      assert xf(b, a, :right) == ListDelta.new()
     end
 
     test "from a higher index to the same one" do
+      a = ListDelta.move(3, 1)
+      b = ListDelta.remove(1)
+      assert xf(a, b, :left) == ListDelta.remove(2)
+      assert xf(b, a, :right) == ListDelta.move(2, 1)
     end
 
     test "from a lower index to the same one" do
+      a = ListDelta.move(1, 3)
+      b = ListDelta.remove(3)
+      assert xf(a, b, :left) == ListDelta.remove(2)
+      assert xf(b, a, :right) == ListDelta.move(1, 2)
     end
 
     test "between higher indexes" do
+      a = ListDelta.move(2, 3)
+      b = ListDelta.remove(0)
+      assert xf(a, b, :left) == ListDelta.remove(0)
+      assert xf(b, a, :right) == ListDelta.move(1, 2)
     end
 
     test "between lower indexes" do
+      a = ListDelta.move(1, 2)
+      b = ListDelta.remove(3)
+      assert xf(a, b, :left) == ListDelta.remove(3)
+      assert xf(b, a, :right) == ListDelta.move(1, 2)
     end
 
     test "from lower index to a higher one" do
+      a = ListDelta.move(1, 3)
+      b = ListDelta.remove(2)
+      assert xf(a, b, :left) == ListDelta.remove(1)
+      assert xf(b, a, :right) == ListDelta.move(1, 2)
     end
 
     test "from higher index to lower one" do
+      a = ListDelta.move(3, 1)
+      b = ListDelta.remove(2)
+      assert xf(a, b, :left) == ListDelta.remove(3)
+      assert xf(b, a, :right) == ListDelta.move(2, 1)
     end
   end
 
