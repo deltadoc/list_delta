@@ -341,6 +341,53 @@ defmodule ListDelta.TransformationTest do
   end
 
   describe "move against move" do
+    test "between lower/higher indexes" do
+      a = ListDelta.move(1, 2)
+      b = ListDelta.move(3, 4)
+      assert xf(a, b, :left) == ListDelta.move(3, 4)
+      assert xf(b, a, :right) == ListDelta.move(1, 2)
+      assert xf(b, a, :left) == ListDelta.move(1, 2)
+      assert xf(a, b, :right) == ListDelta.move(3, 4)
+    end
+
+    test "between middle indexes" do
+      a = ListDelta.move(2, 3)
+      b = ListDelta.move(1, 4)
+      assert xf(a, b, :left) == ListDelta.move(1, 4)
+      assert xf(b, a, :right) == ListDelta.move(2, 3)
+    end
+
+    test "from an index inside to one after" do
+      a = ListDelta.move(3, 6)
+      b = ListDelta.move(1, 5)
+      assert xf(a, b, :left) == ListDelta.move(1, 5)
+      assert xf(b, a, :right) == ListDelta.new([move(2, 5), move(6, 4)])
+    end
+
+    test "from an index inside to one before" do
+      a = ListDelta.move(5, 1)
+      b = ListDelta.move(3, 6)
+      assert xf(a, b, :left) == ListDelta.move(4, 6)
+      assert xf(b, a, :right) == ListDelta.move(4, 1)
+    end
+
+    test "from an index after to one inside" do
+      a = ListDelta.move(6, 3)
+      b = ListDelta.move(1, 5)
+      assert xf(a, b, :left) == ListDelta.new([move(1, 5), move(3, 2)])
+      assert xf(b, a, :right) == ListDelta.new([move(6, 3), move(6, 5)])
+    end
+
+    test "from an index before to one inside" do
+      a = ListDelta.move(1, 3)
+      b = ListDelta.move(2, 4)
+    end
+
+    test "from an index before to one after" do
+    end
+
+    test "from an index after to one before" do
+    end
   end
 
   describe "move against change" do

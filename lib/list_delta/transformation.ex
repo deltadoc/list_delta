@@ -162,6 +162,36 @@ defmodule ListDelta.Transformation do
     replace(rep_idx + 1, init)
   end
 
+  defp transform_op(%{move: from_lft, to: to_lft},
+                    %{move: from_rgt, to: to_rgt}, _)
+  when from_rgt > from_lft and to_lft > from_rgt and to_rgt > to_lft do
+    [move(from_rgt - 1, to_rgt - 1), move(to_rgt, to_rgt - 2)]
+  end
+
+  defp transform_op(%{move: from_lft, to: to_lft},
+                    %{move: from_rgt, to: to_rgt}, _)
+  when from_lft > from_rgt and to_rgt > from_lft and from_rgt > to_lft do
+    move(from_rgt + 1, to_rgt)
+  end
+
+  defp transform_op(%{move: from_lft, to: to_lft},
+                    %{move: from_rgt, to: to_rgt}, _)
+  when from_rgt > from_lft and from_lft > to_rgt and to_lft > from_rgt do
+    move(from_rgt - 1, to_rgt)
+  end
+
+  defp transform_op(%{move: from_lft, to: to_lft},
+                    %{move: from_rgt, to: to_rgt}, _)
+  when from_lft > from_rgt and to_rgt > to_lft and from_lft > to_rgt do
+    [move(from_rgt, to_rgt), move(to_lft, to_lft - 1)]
+  end
+
+  defp transform_op(%{move: from_lft, to: to_lft},
+                    %{move: from_rgt, to: to_rgt}, _)
+  when from_lft > from_rgt and to_rgt > to_lft and from_lft > to_rgt do
+    [move(from_rgt, to_rgt), move(to_lft, to_lft - 1)]
+  end
+
   defp transform_op(%{replace: rep_idx},
                     %{remove: rep_idx}, _) do
     []
