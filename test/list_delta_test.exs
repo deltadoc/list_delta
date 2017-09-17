@@ -28,8 +28,7 @@ defmodule ListDeltaTest do
         |> ListDelta.replace(3, 4)
         |> ListDelta.change(4, false)
       operations = [
-        Operation.remove(1),
-        Operation.insert(1, nil),
+        Operation.replace(1, nil),
         Operation.replace(3, 4),
         Operation.change(4, false)
       ]
