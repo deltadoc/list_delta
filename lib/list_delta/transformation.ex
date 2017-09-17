@@ -117,6 +117,17 @@ defmodule ListDelta.Transformation do
     move(from_idx - 1, to_idx - 1)
   end
 
+  defp transform_op(%{remove: rem_idx},
+                    %{change: rem_idx}, _) do
+    []
+  end
+
+  defp transform_op(%{remove: rem_idx},
+                    %{change: chg_idx, delta: delta}, _)
+  when chg_idx > rem_idx do
+    change(chg_idx - 1, delta)
+  end
+
   defp transform_op(%{move: from_idx, to: to_idx},
                     %{remove: from_idx}, _) do
     remove(to_idx)
