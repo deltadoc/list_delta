@@ -1,5 +1,5 @@
 defmodule ListDelta.Transformation do
-  alias ListDelta.{Operation}
+  alias ListDelta.{Operation, ItemDelta}
 
   import Operation
 
@@ -100,6 +100,11 @@ defmodule ListDelta.Transformation do
   defp transform_op(%{replace: rep_idx},
                     %{change: rep_idx}, _) do
     []
+  end
+
+  defp transform_op(%{change: idx, delta: lft_delta},
+                    %{change: idx, delta: rgt_delta}, priority) do
+    change(idx, ItemDelta.transform(lft_delta, rgt_delta, priority))
   end
 
   defp transform_op(_lft_op, op, _priority), do: op

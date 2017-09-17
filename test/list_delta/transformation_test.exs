@@ -195,6 +195,14 @@ defmodule ListDelta.TransformationTest do
   end
 
   describe "change against change" do
+    test "at the same index" do
+      a = ListDelta.change(1, "F")
+      b = ListDelta.change(1, "D")
+      assert xf(a, b, :left) == ListDelta.change(1, "F")
+      assert xf(a, b, :right) == ListDelta.change(1, "D")
+      assert xf(b, a, :left) == ListDelta.change(1, "D")
+      assert xf(b, a, :right) == ListDelta.change(1, "F")
+    end
   end
 
   defp xf(left, right, priority), do: ListDelta.transform(left, right, priority)
