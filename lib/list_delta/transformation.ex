@@ -150,5 +150,10 @@ defmodule ListDelta.Transformation do
     []
   end
 
+  defp transform_op(%{replace: idx},
+                    %{replace: idx}, :left) do
+    []
+  end
+
   defp transform_op(_lft_op, op, _priority), do: op
 end

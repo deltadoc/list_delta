@@ -275,6 +275,23 @@ defmodule ListDelta.TransformationTest do
   end
 
   describe "transforming replace against replace" do
+    test "at the same index" do
+      a = ListDelta.replace(1, "C")
+      b = ListDelta.replace(1, "E")
+      assert xf(a, b, :left) == ListDelta.new()
+      assert xf(a, b, :right) == ListDelta.replace(1, "E")
+      assert xf(b, a, :left) == ListDelta.new()
+      assert xf(b, a, :right) == ListDelta.replace(1, "C")
+    end
+
+    test "at a different index" do
+      a = ListDelta.replace(1, "C")
+      b = ListDelta.replace(2, "E")
+      assert xf(a, b, :left) == ListDelta.replace(2, "E")
+      assert xf(b, a, :right) == ListDelta.replace(1, "C")
+      assert xf(b, a, :left) == ListDelta.replace(1, "C")
+      assert xf(a, b, :right) == ListDelta.replace(2, "E")
+    end
   end
 
   describe "transforming replace against move" do
