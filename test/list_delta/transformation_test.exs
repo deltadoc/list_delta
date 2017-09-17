@@ -7,7 +7,7 @@ defmodule ListDelta.TransformationTest do
 
   doctest Transformation
 
-  describe "transforming insert against another insert" do
+  describe "insert against another insert" do
     test "at the same index" do
       a = ListDelta.insert(0, "A")
       b = ListDelta.insert(0, "B")
@@ -27,7 +27,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming insert against remove" do
+  describe "insert against remove" do
     test "at the same index" do
       a = ListDelta.remove(0)
       b = ListDelta.insert(0, "B")
@@ -50,7 +50,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming insert against replace" do
+  describe "insert against replace" do
     test "at the same index" do
       a = ListDelta.replace(0, "A")
       b = ListDelta.insert(0, "B")
@@ -73,7 +73,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming insert against move" do
+  describe "insert against move" do
     test "from the same index to a higher one" do
       a = ListDelta.move(0, 2)
       b = ListDelta.insert(0, "B")
@@ -131,7 +131,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming insert against change" do
+  describe "insert against change" do
     test "at the same index" do
       a = ListDelta.change(0, "A")
       b = ListDelta.insert(0, "B")
@@ -154,7 +154,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming remove against remove" do
+  describe "remove against remove" do
     test "at the same index" do
       a = ListDelta.remove(0)
       b = ListDelta.remove(0)
@@ -170,7 +170,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming remove against replace" do
+  describe "remove against replace" do
     test "at the same index" do
       a = ListDelta.remove(0)
       b = ListDelta.replace(0, "B")
@@ -193,7 +193,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming remove against move" do
+  describe "remove against move" do
     test "from the same index to a higher one" do
       a = ListDelta.move(0, 2)
       b = ListDelta.remove(0)
@@ -251,7 +251,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming remove against change" do
+  describe "remove against change" do
     test "at the same index" do
       a = ListDelta.change(1, "C")
       b = ListDelta.remove(1)
@@ -274,7 +274,7 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming replace against replace" do
+  describe "replace against replace" do
     test "at the same index" do
       a = ListDelta.replace(1, "C")
       b = ListDelta.replace(1, "E")
@@ -294,19 +294,19 @@ defmodule ListDelta.TransformationTest do
     end
   end
 
-  describe "transforming replace against move" do
+  describe "replace against move" do
   end
 
-  describe "transforming replace against change" do
+  describe "replace against change" do
   end
 
-  describe "transforming move against move" do
+  describe "move against move" do
   end
 
-  describe "transforming move against change" do
+  describe "move against change" do
   end
 
-  describe "transforming change against change" do
+  describe "change against change" do
   end
 
   defp xf(left, right, priority), do: ListDelta.transform(left, right, priority)
