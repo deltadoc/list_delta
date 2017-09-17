@@ -42,7 +42,7 @@ defmodule ListDelta.CompositionTest do
     test "remove at a different index maintains both" do
       fst = ListDelta.insert(0, 3)
       snd = ListDelta.remove(4)
-      assert comp(fst, snd) == [insert(0, 3), remove(4)]
+      assert comp(fst, snd) == [remove(3), insert(0, 3)]
     end
 
     test "remove a the same index drops both operations" do
@@ -77,12 +77,7 @@ defmodule ListDelta.CompositionTest do
         |> ListDelta.insert(0, nil)
         |> ListDelta.insert(0, false)
       snd = ListDelta.remove(1)
-      assert comp(fst, snd) == [
-        insert(0, 3),
-        insert(0, nil),
-        insert(0, false),
-        remove(1)
-      ]
+      assert comp(fst, snd) == [insert(0, 3), insert(0, false)]
     end
 
     test "replace at the same index changes the insert init" do
@@ -234,6 +229,14 @@ defmodule ListDelta.CompositionTest do
       assert ListDelta.remove(3) |> comp(dlt) |> Enum.at(1) == ins
       assert ListDelta.replace(3, "B") |> comp(dlt) |> Enum.at(1) == ins
       assert ListDelta.change(3, "B") |> comp(dlt) |> Enum.at(1) == ins
+    end
+
+    test "removes always come second to last" do
+      rem = remove(0)
+      dlt = ListDelta.new([rem])
+      assert ListDelta.insert(1, 1) |> comp(dlt) |> Enum.at(0) == rem
+      assert ListDelta.replace(3, "B") |> comp(dlt) |> Enum.at(1) == rem
+      assert ListDelta.change(3, "B") |> comp(dlt) |> Enum.at(1) == rem
     end
   end
 

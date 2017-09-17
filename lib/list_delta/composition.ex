@@ -33,6 +33,17 @@ defmodule ListDelta.Composition do
     remainder
   end
 
+  defp prepend(%{remove: rem_idx},
+              [%{insert: ins_idx} = ins | remainder])
+  when rem_idx > ins_idx do
+    [ins | prepend(remove(rem_idx - 1), remainder)]
+  end
+
+  defp prepend(%{remove: _} = rem,
+              [%{insert: _} = ins | remainder]) do
+    [ins | prepend(rem, remainder)]
+  end
+
   defp prepend(%{remove: idx},
               [%{remove: idx} | _] = operations) do
     operations
