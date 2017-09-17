@@ -111,36 +111,41 @@ defmodule ListDelta.CompositionTest do
   end
 
   describe "remove +" do
-    @fst ListDelta.remove(0)
+    @fst ListDelta.remove(1)
 
     test "insert at the same index changes insert into replace" do
-      snd = ListDelta.insert(0, "text")
-      assert comp(@fst, snd) == [replace(0, "text")]
+      snd = ListDelta.insert(1, "text")
+      assert comp(@fst, snd) == [replace(1, "text")]
     end
 
-    test "insert at a different index maintains both" do
-      snd = ListDelta.insert(1, "text")
-      assert comp(@fst, snd) == [remove(0), insert(1, "text")]
+    test "insert at a higher index maintains both" do
+      snd = ListDelta.insert(2, "text")
+      assert comp(@fst, snd) == [remove(1), insert(2, "text")]
+    end
+
+    test "insert at a lower index maintains both" do
+      snd = ListDelta.insert(0, "text")
+      assert comp(@fst, snd) == [remove(1), insert(0, "text")]
     end
 
     test "change maintains both" do
-      snd = ListDelta.change(0, "text")
-      assert comp(@fst, snd) == [remove(0), change(0, "text")]
+      snd = ListDelta.change(1, "text")
+      assert comp(@fst, snd) == [remove(1), change(1, "text")]
     end
 
     test "remove at the same index drops second remove" do
-      snd = ListDelta.remove(0)
-      assert comp(@fst, snd) == [remove(0)]
+      snd = ListDelta.remove(1)
+      assert comp(@fst, snd) == [remove(1)]
     end
 
     test "remove at a different index maintains both" do
-      snd = ListDelta.remove(1)
-      assert comp(@fst, snd) == [remove(0), remove(1)]
+      snd = ListDelta.remove(2)
+      assert comp(@fst, snd) == [remove(1), remove(2)]
     end
 
     test "replace maintains both" do
-      snd = ListDelta.replace(0, 5)
-      assert comp(@fst, snd) == [remove(0), replace(0, 5)]
+      snd = ListDelta.replace(1, 5)
+      assert comp(@fst, snd) == [remove(1), replace(1, 5)]
     end
   end
 
@@ -219,6 +224,16 @@ defmodule ListDelta.CompositionTest do
     test "replace at a different index maintains both" do
       snd = ListDelta.replace(1, 5)
       assert comp(@fst, snd) == [change(0, "abc"), replace(1, 5)]
+    end
+  end
+
+  describe "normalisation" do
+    test "inserts always come last" do
+      ins = insert(0, 1)
+      dlt = ListDelta.new([ins])
+      assert ListDelta.remove(3) |> comp(dlt) |> Enum.at(1) == ins
+      assert ListDelta.replace(3, "B") |> comp(dlt) |> Enum.at(1) == ins
+      assert ListDelta.change(3, "B") |> comp(dlt) |> Enum.at(1) == ins
     end
   end
 
