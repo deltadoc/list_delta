@@ -145,6 +145,23 @@ defmodule ListDelta.Transformation do
     remove(rem_idx + 1)
   end
 
+  defp transform_op(%{move: from_idx, to: to_idx},
+                    %{replace: from_idx, init: init}, _) do
+    replace(to_idx, init)
+  end
+
+  defp transform_op(%{move: from_idx, to: to_idx},
+                    %{replace: rep_idx, init: init}, _)
+  when from_idx < rep_idx and rep_idx <= to_idx do
+    replace(rep_idx - 1, init)
+  end
+
+  defp transform_op(%{move: from_idx, to: to_idx},
+                    %{replace: rep_idx, init: init}, _)
+  when from_idx > rep_idx and rep_idx >= to_idx do
+    replace(rep_idx + 1, init)
+  end
+
   defp transform_op(%{replace: idx},
                     %{remove: idx}, _) do
     []

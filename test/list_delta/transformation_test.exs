@@ -295,6 +295,33 @@ defmodule ListDelta.TransformationTest do
   end
 
   describe "replace against move" do
+    test "from the same index" do
+      a = ListDelta.move(1, 3)
+      b = ListDelta.replace(1, "B")
+      assert xf(a, b, :left) == ListDelta.replace(3, "B")
+      assert xf(b, a, :right) == ListDelta.move(1, 3)
+    end
+
+    test "to the same index" do
+      a = ListDelta.move(1, 3)
+      b = ListDelta.replace(3, "B")
+      assert xf(a, b, :left) == ListDelta.replace(2, "B")
+      assert xf(b, a, :right) == ListDelta.move(1, 3)
+    end
+
+    test "from lower index to a higher one" do
+      a = ListDelta.move(1, 3)
+      b = ListDelta.replace(2, "B")
+      assert xf(a, b, :left) == ListDelta.replace(1, "B")
+      assert xf(b, a, :right) == ListDelta.move(1, 3)
+    end
+
+    test "from higher index to a lower one" do
+      a = ListDelta.move(3, 1)
+      b = ListDelta.replace(2, "B")
+      assert xf(a, b, :left) == ListDelta.replace(3, "B")
+      assert xf(b, a, :right) == ListDelta.move(3, 1)
+    end
   end
 
   describe "replace against change" do
