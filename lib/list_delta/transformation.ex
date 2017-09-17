@@ -25,9 +25,9 @@ defmodule ListDelta.Transformation do
     insert(idx + 1, init)
   end
 
-  defp transform_op(%{insert: lft_idx},
+  defp transform_op(%{insert: lft_idx, init: lft_init},
                     %{insert: _} = insert, :left) do
-    [move(lft_idx, lft_idx - 1), insert]
+    [remove(lft_idx), insert(lft_idx - 1, lft_init), insert]
   end
 
   defp transform_op(%{insert: ins_idx},
@@ -46,24 +46,6 @@ defmodule ListDelta.Transformation do
                     %{change: chg_idx, delta: delta}, _)
   when chg_idx >= ins_idx do
     change(chg_idx + 1, delta)
-  end
-
-  defp transform_op(%{insert: ins_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx < ins_idx and to_idx >= ins_idx do
-    [move(from_idx, to_idx + 1), move(ins_idx - 1, ins_idx)]
-  end
-
-  defp transform_op(%{insert: ins_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx >= ins_idx and to_idx < ins_idx do
-    [move(from_idx + 1, to_idx), move(ins_idx, ins_idx + 1)]
-  end
-
-  defp transform_op(%{insert: ins_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx >= ins_idx do
-    move(from_idx + 1, to_idx + 1)
   end
 
   defp transform_op(%{remove: rem_idx},
@@ -94,29 +76,6 @@ defmodule ListDelta.Transformation do
     replace(rep_idx - 1, init)
   end
 
-  defp transform_op(%{remove: to_idx},
-                    %{move: to_idx}, _) do
-    []
-  end
-
-  defp transform_op(%{remove: rem_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx < rem_idx and rem_idx <= to_idx do
-    move(from_idx, to_idx - 1)
-  end
-
-  defp transform_op(%{remove: rem_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx > rem_idx and rem_idx >= to_idx do
-    move(from_idx - 1, to_idx)
-  end
-
-  defp transform_op(%{remove: rem_idx},
-                    %{move: from_idx, to: to_idx}, _)
-  when from_idx > rem_idx and rem_idx < to_idx do
-    move(from_idx - 1, to_idx - 1)
-  end
-
   defp transform_op(%{remove: rem_idx},
                     %{change: rem_idx}, _) do
     []
@@ -126,70 +85,6 @@ defmodule ListDelta.Transformation do
                     %{change: chg_idx, delta: delta}, _)
   when chg_idx > rem_idx do
     change(chg_idx - 1, delta)
-  end
-
-  defp transform_op(%{move: from_idx, to: to_idx},
-                    %{remove: from_idx}, _) do
-    remove(to_idx)
-  end
-
-  defp transform_op(%{move: from_idx, to: to_idx},
-                    %{remove: rem_idx}, _)
-  when from_idx < rem_idx and rem_idx <= to_idx do
-    remove(rem_idx - 1)
-  end
-
-  defp transform_op(%{move: from_idx, to: to_idx},
-                    %{remove: rem_idx}, _)
-  when from_idx > rem_idx and rem_idx >= to_idx do
-    remove(rem_idx + 1)
-  end
-
-  defp transform_op(%{move: from_idx, to: to_idx},
-                    %{replace: from_idx, init: init}, _) do
-    replace(to_idx, init)
-  end
-
-  defp transform_op(%{move: from_idx, to: to_idx},
-                    %{replace: rep_idx, init: init}, _)
-  when from_idx < rep_idx and rep_idx <= to_idx do
-    replace(rep_idx - 1, init)
-  end
-
-  defp transform_op(%{move: from_idx, to: to_idx},
-                    %{replace: rep_idx, init: init}, _)
-  when from_idx > rep_idx and rep_idx >= to_idx do
-    replace(rep_idx + 1, init)
-  end
-
-  defp transform_op(%{move: from_lft, to: to_lft},
-                    %{move: from_rgt, to: to_rgt}, _)
-  when from_rgt > from_lft and to_lft > from_rgt and to_rgt > to_lft do
-    [move(from_rgt - 1, to_rgt - 1), move(to_rgt, to_rgt - 2)]
-  end
-
-  defp transform_op(%{move: from_lft, to: to_lft},
-                    %{move: from_rgt, to: to_rgt}, _)
-  when from_lft > from_rgt and to_rgt > from_lft and from_rgt > to_lft do
-    move(from_rgt + 1, to_rgt)
-  end
-
-  defp transform_op(%{move: from_lft, to: to_lft},
-                    %{move: from_rgt, to: to_rgt}, _)
-  when from_rgt > from_lft and from_lft > to_rgt and to_lft > from_rgt do
-    move(from_rgt - 1, to_rgt)
-  end
-
-  defp transform_op(%{move: from_lft, to: to_lft},
-                    %{move: from_rgt, to: to_rgt}, _)
-  when from_lft > from_rgt and to_rgt > to_lft and from_lft > to_rgt do
-    [move(from_rgt, to_rgt), move(to_lft, to_lft - 1)]
-  end
-
-  defp transform_op(%{move: from_lft, to: to_lft},
-                    %{move: from_rgt, to: to_rgt}, _)
-  when from_lft > from_rgt and to_rgt > to_lft and from_lft > to_rgt do
-    [move(from_rgt, to_rgt), move(to_lft, to_lft - 1)]
   end
 
   defp transform_op(%{replace: rep_idx},

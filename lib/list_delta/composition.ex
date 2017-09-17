@@ -43,11 +43,6 @@ defmodule ListDelta.Composition do
     [remove | remainder]
   end
 
-  defp prepend(%{remove: new_idx},
-              [%{move: orig_idx, to: new_idx} | remainder]) do
-    [remove(orig_idx) | remainder]
-  end
-
   defp prepend(%{remove: idx} = remove,
               [%{change: idx} | remainder]) do
     [remove | remainder]
@@ -70,20 +65,6 @@ defmodule ListDelta.Composition do
   defp prepend(%{replace: idx} = replace,
               [%{change: idx} | remainder]) do
     [replace | remainder]
-  end
-
-  #
-  # Special rules for composing `move` operations
-  #
-
-  defp prepend(%{move: idx, to: new_idx},
-              [%{insert: idx, init: init} | remainder]) do
-    [insert(new_idx, init) | remainder]
-  end
-
-  defp prepend(%{move: interim_idx, to: final_idx},
-              [%{move: orig_idx, to: interim_idx} | remainder]) do
-    [move(orig_idx, final_idx) | remainder]
   end
 
   #

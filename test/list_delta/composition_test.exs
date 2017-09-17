@@ -108,18 +108,6 @@ defmodule ListDelta.CompositionTest do
       snd = ListDelta.change(2, "text")
       assert comp(fst, snd) == [insert(0, 3), change(2, "text")]
     end
-
-    test "with move at the same origin index changes the insert index" do
-      fst = ListDelta.insert(0, "A")
-      snd = ListDelta.move(0, 6)
-      assert comp(fst, snd) == [insert(6, "A")]
-    end
-
-    test "with move at a different index maintains both" do
-      fst = ListDelta.insert(0, 3)
-      snd = ListDelta.move(2, 0)
-      assert comp(fst, snd) == [insert(0, 3), move(2, 0)]
-    end
   end
 
   describe "composing remove" do
@@ -153,11 +141,6 @@ defmodule ListDelta.CompositionTest do
     test "with replace maintains both" do
       snd = ListDelta.replace(0, 5)
       assert comp(@fst, snd) == [remove(0), replace(0, 5)]
-    end
-
-    test "with move maintains both" do
-      snd = ListDelta.move(0, 3)
-      assert comp(@fst, snd) == [remove(0), move(0, 3)]
     end
   end
 
@@ -197,60 +180,6 @@ defmodule ListDelta.CompositionTest do
     test "with replace at a different index maintains both" do
       snd = ListDelta.replace(1, 5)
       assert comp(@fst, snd) == [replace(0, 123), replace(1, 5)]
-    end
-
-    test "with move maintains both" do
-      snd = ListDelta.move(0, 3)
-      assert comp(@fst, snd) == [replace(0, 123), move(0, 3)]
-    end
-  end
-
-  describe "composing move" do
-    @fst ListDelta.move(0, 3)
-
-    test "with insert maintains both" do
-      snd = ListDelta.insert(0, "text")
-      assert comp(@fst, snd) == [move(0, 3), insert(0, "text")]
-    end
-
-    test "with remove at the same origin index maintains both" do
-      snd = ListDelta.remove(0)
-      assert comp(@fst, snd) == [move(0, 3), remove(0)]
-    end
-
-    test "with remove at the same destination index changes remove index" do
-      snd = ListDelta.remove(3)
-      assert comp(@fst, snd) == [remove(0)]
-    end
-
-    test "with remove at different indexes maintains both" do
-      snd = ListDelta.remove(2)
-      assert comp(@fst, snd) == [move(0, 3), remove(2)]
-    end
-
-    test "with replace maintains both" do
-      snd = ListDelta.replace(0, "text")
-      assert comp(@fst, snd) == [move(0, 3), replace(0, "text")]
-    end
-
-    test "with move at the same origin index maintains both" do
-      snd = ListDelta.move(0, 2)
-      assert comp(@fst, snd) == [move(0, 3), move(0, 2)]
-    end
-
-    test "with move at the same destination index groups them into one" do
-      snd = ListDelta.move(3, 2)
-      assert comp(@fst, snd) == [move(0, 2)]
-    end
-
-    test "with move at different indexes maintains both" do
-      snd = ListDelta.move(2, 5)
-      assert comp(@fst, snd) == [move(0, 3), move(2, 5)]
-    end
-
-    test "with change maintains both" do
-      snd = ListDelta.change(0, "B")
-      assert comp(@fst, snd) == [move(0, 3), change(0, "B")]
     end
   end
 

@@ -18,10 +18,6 @@ defmodule ListDelta do
     append(delta, Operation.replace(idx, new_init))
   end
 
-  def move(delta \\ %ListDelta{}, idx, new_idx) do
-    append(delta, Operation.move(idx, new_idx))
-  end
-
   def change(delta \\ %ListDelta{}, idx, item_delta) do
     append(delta, Operation.change(idx, item_delta))
   end

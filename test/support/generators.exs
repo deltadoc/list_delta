@@ -12,7 +12,7 @@ defmodule ListDelta.Generators do
   end
 
   def operation do
-    oneof [insert(), remove(), replace(), move(), change()]
+    oneof [insert(), remove(), replace(), change()]
   end
 
   def insert do
@@ -30,12 +30,6 @@ defmodule ListDelta.Generators do
   def replace do
     let [idx <- item_index(), init <- item_delta()] do
       Operation.replace(idx, init)
-    end
-  end
-
-  def move do
-    let [from <- item_index(), to <- item_index()] do
-      Operation.move(from, to)
     end
   end
 
