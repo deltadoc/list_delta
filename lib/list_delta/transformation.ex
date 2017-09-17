@@ -20,6 +20,10 @@ defmodule ListDelta.Transformation do
     do_transform(lft_remainder, transform_op(lft_op, op, priority), priority)
   end
 
+  #
+  # Special rules for composing `insert` transformations
+  #
+
   defp transform_op(%{insert: lft_idx},
                     %{insert: idx, init: init}, :left) when idx >= lft_idx do
     insert(idx + 1, init)
@@ -47,6 +51,10 @@ defmodule ListDelta.Transformation do
   when chg_idx >= ins_idx do
     change(chg_idx + 1, delta)
   end
+
+  #
+  # Special rules for composing `remove` transformations
+  #
 
   defp transform_op(%{remove: rem_idx},
                     %{insert: ins_idx, init: init}, _)
@@ -87,6 +95,10 @@ defmodule ListDelta.Transformation do
     change(chg_idx - 1, delta)
   end
 
+  #
+  # Special rules for composing `replace` transformations
+  #
+
   defp transform_op(%{replace: rep_idx},
                     %{remove: rep_idx}, _) do
     []
@@ -101,6 +113,10 @@ defmodule ListDelta.Transformation do
                     %{change: rep_idx}, _) do
     []
   end
+
+  #
+  # Special rules for composing `change` transformations
+  #
 
   defp transform_op(%{change: idx, delta: lft_delta},
                     %{change: idx, delta: rgt_delta}, priority) do
