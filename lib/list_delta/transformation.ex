@@ -94,15 +94,15 @@ defmodule ListDelta.Transformation do
     replace(rep_idx - 1, init)
   end
 
-  defp transform_op(%{remove: idx},
-                    %{move: idx}, _) do
+  defp transform_op(%{remove: rem_idx},
+                    %{move: rem_idx}, _) do
     []
   end
 
-  defp transform_op(%{remove: idx},
-                    %{move: from_idx, to: idx}, _)
-  when from_idx > idx do
-    move(from_idx - 1, idx)
+  defp transform_op(%{remove: to_idx},
+                    %{move: from_idx, to: to_idx}, _)
+  when from_idx > to_idx do
+    move(from_idx - 1, to_idx)
   end
 
   defp transform_op(%{remove: rem_idx},
@@ -117,16 +117,21 @@ defmodule ListDelta.Transformation do
     move(from_idx - 1, to_idx)
   end
 
-  defp transform_op(%{remove: idx},
+  defp transform_op(%{remove: rem_idx},
                     %{move: from_idx, to: to_idx}, _)
-  when from_idx > idx and to_idx > idx do
+  when from_idx > rem_idx and to_idx > rem_idx do
     move(from_idx - 1, to_idx - 1)
   end
 
-  defp transform_op(%{remove: idx},
-                    %{move: from_idx, to: idx}, _)
-  when from_idx < idx do
-    move(from_idx, idx - 1)
+  defp transform_op(%{remove: to_idx},
+                    %{move: from_idx, to: to_idx}, _)
+  when from_idx < to_idx do
+    move(from_idx, to_idx - 1)
+  end
+
+  defp transform_op(%{move: from_idx, to: to_idx},
+                    %{remove: from_idx}, _) do
+    remove(to_idx)
   end
 
   defp transform_op(%{move: from_idx, to: to_idx},
@@ -141,26 +146,16 @@ defmodule ListDelta.Transformation do
     remove(rem_idx + 1)
   end
 
-  defp transform_op(%{move: idx, to: to_idx},
-                    %{remove: idx}, _) do
-    remove(to_idx)
+  defp transform_op(%{move: from_idx, to: to_idx},
+                    %{remove: to_idx}, _)
+  when from_idx > to_idx do
+    remove(to_idx + 1)
   end
 
-  defp transform_op(%{move: idx, to: to_idx},
-                    %{remove: idx}, _) do
-    remove(to_idx)
-  end
-
-  defp transform_op(%{move: from_idx, to: idx},
-                    %{remove: idx}, _)
-  when from_idx > idx do
-    remove(idx + 1)
-  end
-
-  defp transform_op(%{move: from_idx, to: idx},
-                    %{remove: idx}, _)
-  when from_idx < idx do
-    remove(idx - 1)
+  defp transform_op(%{move: from_idx, to: to_idx},
+                    %{remove: to_idx}, _)
+  when from_idx < to_idx do
+    remove(to_idx - 1)
   end
 
   defp transform_op(%{replace: idx},
