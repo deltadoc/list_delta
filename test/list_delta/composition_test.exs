@@ -30,7 +30,7 @@ defmodule ListDelta.CompositionTest do
     test "insert at the same index maintains both" do
       fst = ListDelta.insert(0, 2)
       snd = ListDelta.insert(0, nil)
-      assert comp(fst, snd) == [insert(0, 2), insert(0, nil)]
+      assert comp(fst, snd) == [insert(0, nil), insert(1, 2)]
     end
 
     test "insert at a lower index maintains both" do
@@ -82,7 +82,7 @@ defmodule ListDelta.CompositionTest do
         |> ListDelta.insert(0, nil)
         |> ListDelta.insert(0, false)
       snd = ListDelta.remove(0)
-      assert comp(fst, snd) == [insert(0, 3), insert(0, nil)]
+      assert comp(fst, snd) == [insert(0, nil), insert(1, 3)]
     end
 
     test "2 inserts and a remove at a computed index drops right insert" do
@@ -92,7 +92,7 @@ defmodule ListDelta.CompositionTest do
         |> ListDelta.insert(0, nil)
         |> ListDelta.insert(0, false)
       snd = ListDelta.remove(1)
-      assert comp(fst, snd) == [insert(0, 3), insert(0, false)]
+      assert comp(fst, snd) == [insert(0, false), insert(1, 3)]
     end
 
     test "insert at different position and a remove for the original insert" do

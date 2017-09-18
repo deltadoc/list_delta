@@ -26,7 +26,7 @@ defmodule ListDelta.Composition do
 
   defp prepend(%{insert: idx_a} = ins_a,
               [%{insert: idx_b, init: init_b} | remainder])
-  when idx_b > idx_a do
+  when idx_b >= idx_a do
     prepend(insert(idx_b + 1, init_b), prepend(ins_a, remainder))
   end
 
