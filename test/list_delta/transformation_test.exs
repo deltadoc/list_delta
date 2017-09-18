@@ -1,11 +1,31 @@
 defmodule ListDelta.TransformationTest do
   use ExUnit.Case
+  use EQC.ExUnit
 
-  alias ListDelta.{Operation, Transformation}
+  import ListDelta.Operation
+  import ListDelta.Generators
 
-  import Operation
+  doctest ListDelta.Transformation
 
-  doctest Transformation
+  property "list states converge via opposite-priority transformations" do
+    forall {list, side} <- {state(), priority_side()} do
+      forall {delta_a, delta_b} <- {state_delta(list), state_delta(list)} do
+        delta_a_prime = ListDelta.transform(delta_b, delta_a, side)
+        delta_b_prime = ListDelta.transform(delta_a, delta_b, opposite(side))
+
+        list_a =
+          list
+          |> ListDelta.compose(delta_a)
+          |> ListDelta.compose(delta_b_prime)
+        list_b =
+          list
+          |> ListDelta.compose(delta_b)
+          |> ListDelta.compose(delta_a_prime)
+
+        ensure list_a == list_b
+      end
+    end
+  end
 
   describe "insert against another insert" do
     test "at the same index" do
