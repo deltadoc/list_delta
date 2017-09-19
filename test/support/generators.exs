@@ -3,22 +3,10 @@ defmodule ListDelta.Generators do
 
   alias ListDelta.Operation
 
-  @max_length 1000
-
-  def state do
-    let items <- list(item_delta()) do
-      Enum.reduce(items, ListDelta.new(), &ListDelta.insert(&2, 0, &1))
-    end
-  end
+  @max_idx 1000
 
   def delta do
     let ops <- list(operation()) do
-      ListDelta.new(ops)
-    end
-  end
-
-  def state_delta(state) do
-    let ops <- list(operation(list_length(state))) do
       ListDelta.new(ops)
     end
   end
@@ -27,53 +15,64 @@ defmodule ListDelta.Generators do
     oneof [:left, :right]
   end
 
+  def scale_state_to(state, delta) do
+    Enum.reduce ListDelta.operations(delta), state, fn
+      %{remove: idx}, state ->
+        state |> pad_state(idx) |> ListDelta.insert(idx, nil)
+      op, state ->
+        state |> pad_state(Operation.index(op))
+    end
+  end
+
   def opposite(:left), do: :right
   def opposite(:right), do: :left
 
-  defp operation(max_length \\ @max_length) do
+  defp operation(max_idx \\ @max_idx) do
     oneof [
-      insert(max_length),
-      remove(max_length),
-      replace(max_length),
-      change(max_length)
+      insert(max_idx),
+      remove(max_idx),
+      replace(max_idx),
+      change(max_idx)
     ]
   end
 
-  defp insert(max_length) do
-    let [idx <- item_index(max_length), init <- item_delta()] do
+  defp insert(max_idx) do
+    let [idx <- item_index(max_idx), init <- item_delta()] do
       Operation.insert(idx, init)
     end
   end
 
-  defp remove(max_length) do
-    let idx <- item_index(max_length) do
+  defp remove(max_idx) do
+    let idx <- item_index(max_idx) do
       Operation.remove(idx)
     end
   end
 
-  defp replace(max_length) do
-    let [idx <- item_index(max_length), init <- item_delta()] do
+  defp replace(max_idx) do
+    let [idx <- item_index(max_idx), init <- item_delta()] do
       Operation.replace(idx, init)
     end
   end
 
-  defp change(max_length) do
-    let [idx <- item_index(max_length), delta <- item_delta()] do
+  defp change(max_idx) do
+    let [idx <- item_index(max_idx), delta <- item_delta()] do
       Operation.change(idx, delta)
     end
   end
 
-  defp item_index(max_length) do
-    choose(0, max_length)
+  defp item_index(max_idx) do
+    choose(0, max_idx)
   end
 
   defp item_delta do
-    oneof [int(), bool(), list(int()), utf8(), nil]
+    oneof [int(), bool(), nil]
   end
 
-  defp list_length(delta) do
-    delta
-    |> ListDelta.operations()
-    |> length()
+  defp pad_state(state, target_length) do
+    current_length = ListDelta.length(state)
+    for idx <- Enum.to_list(current_length..target_length) do
+      state = ListDelta.insert(state, idx, nil)
+    end
+    state
   end
 end

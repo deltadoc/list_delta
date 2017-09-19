@@ -22,6 +22,8 @@ defmodule ListDelta do
     append(delta, Operation.change(idx, item_delta))
   end
 
+  def length(delta), do: delta |> operations() |> Kernel.length()
+
   def operations(delta), do: delta.ops
 
   defdelegate compose(first, second), to: Composition

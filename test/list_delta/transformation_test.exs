@@ -8,8 +8,12 @@ defmodule ListDelta.TransformationTest do
   doctest ListDelta.Transformation
 
   property "list states converge via opposite-priority transformations" do
-    forall {list, side} <- {state(), priority_side()} do
-      forall {delta_a, delta_b} <- {state_delta(list), state_delta(list)} do
+      forall {delta_a, delta_b, side} <- {delta(), delta(), priority_side()} do
+        list =
+          ListDelta.new()
+          |> scale_state_to(delta_a)
+          |> scale_state_to(delta_b)
+
         delta_a_prime = ListDelta.transform(delta_b, delta_a, side)
         delta_b_prime = ListDelta.transform(delta_a, delta_b, opposite(side))
 
@@ -24,7 +28,6 @@ defmodule ListDelta.TransformationTest do
 
         ensure list_a == list_b
       end
-    end
   end
 
   describe "insert against another insert" do
